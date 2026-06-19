@@ -1,3 +1,4 @@
+#include "NES/RomData.h"
 #include "WS/Carts/WsCartFlash.h"
 #include "pch.h"
 #include "WS/WsConsole.h"
@@ -6,6 +7,7 @@
 #include "WS/WsTimer.h"
 #include "WS/Carts/WsCart.h"
 #include "WS/Carts/WsCartFlash.h"
+#include "WS/Carts/Nileswan/WsCartNileswan.h"
 #include "WS/Carts/WsRtc.h"
 #include "WS/WsControlManager.h"
 #include "WS/WsMemoryManager.h"
@@ -19,6 +21,8 @@
 #include "Shared/SettingTypes.h"
 #include "Shared/FirmwareHelper.h"
 #include "Shared/BatteryManager.h"
+#include <cstdio>
+#include <regex>
 
 WsConsole::WsConsole(Emulator* emu)
 {
@@ -47,18 +51,18 @@ bool WsConsole::IsWWCart()
 
 LoadRomResult WsConsole::LoadRom(VirtualFile& romFile)
 {
+    bool isNileswan = romFile.GetFileExtension() == ".ipl0";
 	vector<uint8_t> romData;
 	romFile.ReadFile(romData);
-
-	if(romData.size() < 0x10000) {
-		return LoadRomResult::Failure;
-	}
 
 	uint32_t power = (uint32_t)std::log2(romData.size());
 	if(romData.size() > ((uint64_t)1 << power)) {
 		//If size isn't a power of 2, pad the beginning of the ROM to the next power of 2
 		uint32_t newSize = 1 << (power + 1);
 		romData.insert(romData.begin(), newSize - romData.size(), 0);
+	}
+	while(romData.size() < 0x10000) {
+	    romData.insert(romData.end(), romData.begin(), romData.end());
 	}
 
 	MessageManager::Log("------------------------------");
@@ -107,7 +111,7 @@ LoadRomResult WsConsole::LoadRom(VirtualFile& romFile)
 		_cartEeprom.reset(new WsEeprom(_emu, this, (WsEepromSize)_cartEepromSize, _cartEepromData, false));
 	}
 
-	if(mapperType >= 0x01) {
+	if(mapperType >= 0x01 || isNileswan) {
 		_cartRtc.reset(new WsRtc(_emu, this));
 	}
 
@@ -151,7 +155,16 @@ LoadRomResult WsConsole::LoadRom(VirtualFile& romFile)
 	_dmaController.reset(new WsDmaController());
 	_ppu.reset(new WsPpu(_emu, this, _memoryManager.get(), _timer.get(), _workRam));
 	_apu.reset(new WsApu(_emu, this, _memoryManager.get(), _dmaController.get()));
-	_cart.reset(IsWWCart() ? new WsCartFlash() : new WsCart());
+	if (isNileswan) {
+	    WsCartNileswan *nileCart = new WsCartNileswan(256, 8);
+	    _cart.reset(nileCart);
+
+		std::regex ipl0_ext("\\.ipl0");
+		nileCart->flash.file = fopen(std::regex_replace(romFile.GetFilePath(), ipl0_ext, ".spi").c_str(), "r+b");
+		nileCart->tf.file = fopen(std::regex_replace(romFile.GetFilePath(), ipl0_ext, ".img").c_str(), "r+b");
+	} else {
+	    _cart.reset(IsWWCart() ? new WsCartFlash() : new WsCart());
+	}
 
 	_cart->Init(_memoryManager.get(), _cartEeprom.get(), _cartRtc.get(), _prgRom, _prgRomSize, _saveRam, _saveRamSize);
 	_memoryManager->Init(_emu, this, _cpu.get(), _ppu.get(), _controlManager.get(), _cart.get(), _timer.get(), _dmaController.get(), _internalEeprom.get(), _apu.get(), _serial.get());
@@ -297,7 +310,7 @@ void WsConsole::InitPostBootRomState()
 
 		// clang-format off
 		constexpr static uint8_t defaultBwPalette[] = {
-			0,0,0,7,0,0,0,5,0,0,0,4,0,0,0,3, 
+			0,0,0,7,0,0,0,5,0,0,0,4,0,0,0,3,
 			0,0,0,2,0,0,0,1,0,0,0,0,0,0,0,0,
 			0,3,5,7,0,0,0,0,0,0,0,0,0,0,0,0,
 			0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -517,7 +530,7 @@ WsState WsConsole::GetState()
 		state.CartEeprom = _cartEeprom->GetState();
 	}
 	if(_cartRtc) {
-		state.CartRtc = _cartRtc->GetState();
+		state.CartRtc = _cartRtc->GetWsState();
 	}
 	return state;
 }
