@@ -208,7 +208,7 @@ void WsDebugger::ProcessWrite(uint32_t addr, uint16_t value, MemoryOperationType
 	MemoryOperationInfo operation(addr, value, type, MemoryType::WsMemory);
 	InstructionProgress.LastMemOperation = operation;
 
-	if(addressInfo.Type == MemoryType::WsWorkRam || addressInfo.Type == MemoryType::WsCartRam) {
+	if(addressInfo.Type == MemoryType::WsWorkRam || addressInfo.Type == MemoryType::WsCartRam || addressInfo.Type == MemoryType::WsNileIpc) {
 		if(addressInfo.Type == MemoryType::WsWorkRam) {
 			bool isMono = _ppu->GetState().Mode == WsVideoMode::Monochrome;
 			if(isMono && addressInfo.Address >= 0x2000 && addressInfo.Address <= 0x3FFF) {

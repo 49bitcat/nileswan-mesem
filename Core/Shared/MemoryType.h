@@ -102,5 +102,10 @@ enum class MemoryType
 	WsInternalEeprom,
 	WsPort,
 
+	WsNileBootrom,
+    WsNileIpc,
+    WsNileSpiTx,
+    WsNileSpiRx,
+
 	None
 };

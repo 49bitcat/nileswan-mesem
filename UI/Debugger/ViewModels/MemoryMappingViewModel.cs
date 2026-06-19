@@ -508,16 +508,24 @@ namespace Mesen.Debugger.ViewModels
 				{ MemoryType.WsWorkRam, Color.FromRgb(0xCD, 0xDC, 0xFA) },
 				{ MemoryType.WsCartRam, Color.FromRgb(0xFA, 0xDC, 0xCD) },
 				{ MemoryType.WsPrgRom, Color.FromRgb(0xC4, 0xE7, 0xD4) },
-				{ MemoryType.WsBootRom, Color.FromRgb(222, 222, 222)  }
+				{ MemoryType.WsBootRom, Color.FromRgb(222, 222, 222)  },
+				{ MemoryType.WsNileBootrom, Color.FromRgb(222, 222, 222)  },
+				{ MemoryType.WsNileIpc, Color.FromRgb(0xD7, 0xCB, 0x9B) },
+                { MemoryType.WsNileSpiTx, Color.FromRgb(222, 222, 222) },
+                { MemoryType.WsNileSpiRx, Color.FromRgb(222, 222, 222) }
 			};
 
 			Dictionary<MemoryType, Color> altColors = new() {
-				{ MemoryType.None, Color.FromRgb(222, 222, 222) },
-				{ MemoryType.WsWorkRam, Color.FromRgb(0xBD, 0xCC, 0xEA) },
-				{ MemoryType.WsCartRam, Color.FromRgb(0xEA, 0xCC, 0xBD) },
-				{ MemoryType.WsPrgRom, Color.FromRgb(0xA4, 0xD7, 0xB4) },
-				{ MemoryType.WsBootRom, Color.FromRgb(222, 222, 222)  }
-			};
+                { MemoryType.None, Color.FromRgb(222, 222, 222) },
+                { MemoryType.WsWorkRam, Color.FromRgb(0xBD, 0xCC, 0xEA) },
+                { MemoryType.WsCartRam, Color.FromRgb(0xEA, 0xCC, 0xBD) },
+                { MemoryType.WsPrgRom, Color.FromRgb(0xA4, 0xD7, 0xB4) },
+                { MemoryType.WsBootRom, Color.FromRgb(222, 222, 222)  },
+                { MemoryType.WsNileBootrom, Color.FromRgb(222, 222, 222)  },
+                { MemoryType.WsNileIpc, Color.FromRgb(0xD7, 0xCB, 0x9B) },
+                { MemoryType.WsNileSpiTx, Color.FromRgb(222, 222, 222) },
+                { MemoryType.WsNileSpiRx, Color.FromRgb(222, 222, 222) }
+            };
 
 			Dictionary<MemoryType, string> accessNotes = new() {
 				{ MemoryType.None, "RW" },
@@ -525,6 +533,10 @@ namespace Mesen.Debugger.ViewModels
 				{ MemoryType.WsCartRam, "RW" },
 				{ MemoryType.WsPrgRom, "R" },
 				{ MemoryType.WsBootRom, "R" },
+				{ MemoryType.WsNileBootrom, "R" },
+				{ MemoryType.WsNileIpc, "RW" },
+				{ MemoryType.WsNileSpiTx, "RW" },
+				{ MemoryType.WsNileSpiRx, "R" }
 			};
 
 			AddressInfo prevAddr = new();

@@ -123,6 +123,10 @@ namespace Mesen.Interop
 				case MemoryType.WsBootRom:
 				case MemoryType.WsInternalEeprom:
 				case MemoryType.WsPort:
+				case MemoryType.WsNileBootrom:
+				case MemoryType.WsNileIpc:
+				case MemoryType.WsNileSpiTx:
+				case MemoryType.WsNileSpiRx:
 					return CpuType.Ws;
 
 				default:
@@ -339,6 +343,8 @@ namespace Mesen.Interop
 				case MemoryType.WsCartRam:
 				case MemoryType.WsBootRom:
 				case MemoryType.WsPort:
+				case MemoryType.WsNileBootrom:
+				case MemoryType.WsNileIpc:
 					return true;
 			}
 
@@ -548,6 +554,10 @@ namespace Mesen.Interop
 				MemoryType.WsBootRom => "BOOT",
 				MemoryType.WsInternalEeprom => "IEEPROM",
 				MemoryType.WsPort => "PORT",
+				MemoryType.WsNileBootrom => "IPL0",
+				MemoryType.WsNileIpc => "IPC",
+				MemoryType.WsNileSpiTx => "SPI TX",
+				MemoryType.WsNileSpiRx => "SPI RX",
 
 				MemoryType.None => "n/a",
 

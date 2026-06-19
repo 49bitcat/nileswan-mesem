@@ -9,6 +9,7 @@
 #include "WS/Carts/WsRtc.h"
 #include "Utilities/ISerializable.h"
 #include "Shared/MemoryType.h"
+#include "Debugger/AddressInfo.h"
 
 enum WwState
 {
@@ -36,18 +37,11 @@ enum WwState
 class WsCartNileswan final : public WsCart
 {
 private:
-    bool flash_enable;
-    uint16_t bank_rom0, bank_rom1, bank_romL, bank_ram;
     uint8_t nile_pow_cnt, nile_emu_cnt;
     uint16_t nile_spi_cnt, nile_bank_mask;
     int8_t nile_fpga_core;
     WwState nile_ww_state;
 
-    int sram_banks, psram_banks;
-
-    uint8_t *buffer_psram = nullptr;
-    uint8_t *buffer_sram = nullptr;
-    uint8_t buffer_ipc[NILE_IPC_SIZE];
     uint8_t buffer_spi_tx[2][NILE_SPI_SIZE];
     uint8_t buffer_spi_rx[2][NILE_SPI_SIZE];
 
@@ -59,9 +53,15 @@ protected:
 	
     uint8_t SpiExchange(uint8_t tx);
     void ResolveBank(uint32_t address, uint8_t** buffer, bool write, bool is_debugger);
-	 int GetSpiBankIndex(bool is_swan);
+	int GetSpiBankIndex(bool is_swan);
+	MemoryType GetMemoryTypeForBank(uint16_t bank, bool rom, bool linear);
 
 public:
+    uint8_t *buffer_psram = nullptr;
+    uint8_t *buffer_sram = nullptr;
+    uint8_t buffer_ipc[NILE_IPC_SIZE];
+    int psram_banks, sram_banks;
+
     NileFlash flash;
     NileMCU mcu;
     NileTF tf;
@@ -77,6 +77,9 @@ public:
 
 	bool IsTFPowered();
 
+	uint32_t GetSelectedBank(uint8_t index);
+	AddressInfo GetAbsoluteAddress(uint32_t relAddr);
+	
 	uint8_t ReadPort(uint16_t port) override;
 	void WritePort(uint16_t port, uint8_t value) override;
 
