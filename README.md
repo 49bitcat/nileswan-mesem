@@ -6,21 +6,21 @@ MesenCE is a community-managed fork based on Mesen2, created to maintain and exp
 
 ## Releases
 
-The latest stable version is available from the [releases page on GitHub](https://github.com/nesdev-org/MesenCE/releases).
+The latest stable version is available from the [releases page on GitHub](https://github.com/49bitcat/nileswan-mesem/releases).
 
 ## Development Builds
 
-[![Mesen](https://github.com/nesdev-org/MesenCE/actions/workflows/build.yml/badge.svg)](https://github.com/nesdev-org/MesenCE/actions/workflows/build.yml)
+[![Mesen](https://github.com/49bitcat/nileswan-mesem/actions/workflows/build.yml/badge.svg)](https://github.com/49bitcat/nileswan-mesem/actions/workflows/build.yml)
 
 #### <ins>Native builds</ins> (recommended) ####
 
 These builds don't require .NET to be installed. They load more quickly and are recommended over the .NET builds.  
 
-* [Windows 10 / 11](https://nightly.link/nesdev-org/MesenCE/workflows/build/master/Mesen%20%28Windows%20-%20net8.0%20-%20AoT%29.zip)  
-* [Linux x64](https://nightly.link/nesdev-org/MesenCE/workflows/build/master/Mesen%20%28Linux%20-%20ubuntu-22.04%20-%20clang_aot%29.zip)  (requires **SDL2**)  
-* [Linux ARM64](https://nightly.link/nesdev-org/MesenCE/workflows/build/master/Mesen%20%28Linux%20-%20ubuntu-22.04-arm%20-%20clang_aot%29.zip)  (requires **SDL2**)  
-* [macOS - Intel](https://nightly.link/nesdev-org/MesenCE/workflows/build/master/Mesen%20%28macOS%20-%20macos-15-intel%20-%20clang_aot%29.zip)  (requires **SDL2**)  
-* [macOS - Apple Silicon](https://nightly.link/nesdev-org/MesenCE/workflows/build/master/Mesen%20%28macOS%20-%20macos-15%20-%20clang_aot%29.zip)  (requires **SDL2**)  
+* [Windows 10 / 11](https://nightly.link/49bitcat/nileswan-mesem/workflows/build/nileswan/Mesen%20%28Windows%20-%20net8.0%20-%20AoT%29.zip)  
+* [Linux x64](https://nightly.link/49bitcat/nileswan-mesem/workflows/build/nileswan/Mesen%20%28Linux%20-%20ubuntu-22.04%20-%20clang_aot%29.zip)  (requires **SDL2**)  
+* [Linux ARM64](https://nightly.link/49bitcat/nileswan-mesem/workflows/build/nileswan/Mesen%20%28Linux%20-%20ubuntu-22.04-arm%20-%20clang_aot%29.zip)  (requires **SDL2**)  
+* [macOS - Intel](https://nightly.link/49bitcat/nileswan-mesem/workflows/build/nileswan/Mesen%20%28macOS%20-%20macos-15-intel%20-%20clang_aot%29.zip)  (requires **SDL2**)  
+* [macOS - Apple Silicon](https://nightly.link/49bitcat/nileswan-mesem/workflows/build/nileswan/Mesen%20%28macOS%20-%20macos-15%20-%20clang_aot%29.zip)  (requires **SDL2**)  
 
 #### <ins>.NET builds</ins> ####
 
@@ -28,15 +28,15 @@ These builds use .NET, which for some builds comes bundled and for others must b
 They all require **.NET 8** except the Windows 7 / 8 build, which requires **.NET 6**.  
 For Linux and macOS, **SDL2** must also be installed. For AppImage builds, **FUSE** (such as libfuse2) must be installed.
 
-* [Windows 7 / 8](https://nightly.link/nesdev-org/MesenCE/workflows/build/master/Mesen%20%28Windows%20-%20net6.0%29.zip)  (requires **.NET 6**)
-* [Linux x64 - AppImage](https://nightly.link/nesdev-org/MesenCE/workflows/build/master/Mesen%20(Linux%20x64%20-%20AppImage).zip)  (requires **FUSE** and **SDL2**)
-* [Linux ARM64](https://nightly.link/nesdev-org/MesenCE/workflows/build/master/Mesen%20%28Linux%20-%20ubuntu-22.04-arm%20-%20clang%29.zip)  (requires **.NET 8** and **SDL2**)
-* [Linux ARM64 - AppImage](https://nightly.link/nesdev-org/MesenCE/workflows/build/master/Mesen%20(Linux%20ARM64%20-%20AppImage).zip)  (requires **FUSE** and **SDL2**)
+* [Windows 7 / 8](https://nightly.link/49bitcat/nileswan-mesem/workflows/build/nileswan/Mesen%20%28Windows%20-%20net6.0%29.zip)  (requires **.NET 6**)
+* [Linux x64 - AppImage](https://nightly.link/49bitcat/nileswan-mesem/workflows/build/nileswan/Mesen%20(Linux%20x64%20-%20AppImage).zip)  (requires **FUSE** and **SDL2**)
+* [Linux ARM64](https://nightly.link/49bitcat/nileswan-mesem/workflows/build/nileswan/Mesen%20%28Linux%20-%20ubuntu-22.04-arm%20-%20clang%29.zip)  (requires **.NET 8** and **SDL2**)
+* [Linux ARM64 - AppImage](https://nightly.link/49bitcat/nileswan-mesem/workflows/build/nileswan/Mesen%20(Linux%20ARM64%20-%20AppImage).zip)  (requires **FUSE** and **SDL2**)
 
 
 #### <ins>Notes</ins> ####
 
-Other builds are also available in the [Actions](https://github.com/nesdev-org/MesenCE/actions) tab.
+Other builds are also available in the [Actions](https://github.com/49bitcat/nileswan-mesem/actions) tab.
 
 * **MacOS**: Development builds are self-signed and will require approval via Gatekeeper before they are able to be run.  
 * **SteamOS**: See [SteamOS.md](SteamOS.md)  

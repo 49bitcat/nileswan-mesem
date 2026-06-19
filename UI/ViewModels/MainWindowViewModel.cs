@@ -27,7 +27,7 @@ namespace Mesen.ViewModels
 		[Reactive] public AudioPlayerViewModel? AudioPlayer { get; private set; }
 		[Reactive] public RecentGamesViewModel RecentGames { get; private set; }
 
-		[Reactive] public string WindowTitle { get; private set; } = "MesenCE";
+		[Reactive] public string WindowTitle { get; private set; } = "nileswan-mesem";
 		[Reactive] public Size RendererSize { get; set; }
 
 		[Reactive] public bool IsMenuVisible { get; set; }
@@ -85,7 +85,7 @@ namespace Mesen.ViewModels
 
 		private void UpdateWindowTitle()
 		{
-			string title = "MesenCE";
+			string title = "nileswan-mesem";
 			string romName = RomInfo.GetRomName();
 			if(!string.IsNullOrWhiteSpace(romName)) {
 				title += " - " + romName;
