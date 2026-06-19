@@ -70,7 +70,7 @@ LoadRomResult WsConsole::LoadRom(VirtualFile& romFile)
 	_prgRomSize = (uint32_t)romData.size();
 	_prgRom = new uint8_t[_prgRomSize];
 	memcpy(_prgRom, romData.data(), _prgRomSize);
-	_emu->RegisterMemory(MemoryType::WsPrgRom, _prgRom, _prgRomSize);
+	_emu->RegisterMemory(isNileswan ? MemoryType::WsNileBootrom : MemoryType::WsPrgRom, _prgRom, _prgRomSize);
 
 	uint8_t sramType = _prgRom[_prgRomSize - 5];
 	switch(sramType) {
@@ -98,13 +98,13 @@ LoadRomResult WsConsole::LoadRom(VirtualFile& romFile)
 
 	MessageManager::Log("------------------------------");
 
-	if(_saveRamSize > 0) {
+	if(_saveRamSize > 0 && !isNileswan) {
 		_saveRam = new uint8_t[_saveRamSize];
 		memset(_saveRam, 0, _saveRamSize);
 		_emu->RegisterMemory(MemoryType::WsCartRam, _saveRam, _saveRamSize);
 	}
 
-	if(_cartEepromSize > 0) {
+	if(_cartEepromSize > 0 && !isNileswan) {
 		_cartEepromData = new uint8_t[_cartEepromSize];
 		memset(_cartEepromData, 0, _cartEepromSize);
 		_emu->RegisterMemory(MemoryType::WsCartEeprom, _cartEepromData, _cartEepromSize);
@@ -162,6 +162,10 @@ LoadRomResult WsConsole::LoadRom(VirtualFile& romFile)
 		std::regex ipl0_ext("\\.ipl0");
 		nileCart->flash.file = fopen(std::regex_replace(romFile.GetFilePath(), ipl0_ext, ".spi").c_str(), "r+b");
 		nileCart->tf.file = fopen(std::regex_replace(romFile.GetFilePath(), ipl0_ext, ".img").c_str(), "r+b");
+
+		_emu->RegisterMemory(MemoryType::WsPrgRom, nileCart->buffer_psram, nileCart->psram_banks * 0x10000);
+		_emu->RegisterMemory(MemoryType::WsCartRam, nileCart->buffer_sram, nileCart->sram_banks * 0x10000);
+		_emu->RegisterMemory(MemoryType::WsNileIpc, nileCart->buffer_ipc, NILE_IPC_SIZE);
 	} else {
 	    _cart.reset(IsWWCart() ? new WsCartFlash() : new WsCart());
 	}

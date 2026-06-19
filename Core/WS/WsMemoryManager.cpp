@@ -1,3 +1,4 @@
+#include "WS/Carts/Nileswan/NileTF.h"
 #include "pch.h"
 #include "WS/WsMemoryManager.h"
 #include "WS/WsConsole.h"
@@ -7,6 +8,7 @@
 #include "WS/WsSerial.h"
 #include "WS/WsEeprom.h"
 #include "WS/Carts/WsCart.h"
+#include "WS/Carts/Nileswan/WsCartNileswan.h"
 #include "Shared/MessageManager.h"
 #include "Shared/Emulator.h"
 #include "Utilities/Serializer.h"
@@ -454,7 +456,12 @@ AddressInfo WsMemoryManager::GetAbsoluteAddress(uint32_t relAddr)
 		return { (int)(relAddr & (_workRamSize - 1)), MemoryType::WsWorkRam };
 	}
 
+	if(WsCartNileswan* nileCart = dynamic_cast<WsCartNileswan*>(_cart)) {
+	    return nileCart->GetAbsoluteAddress(relAddr);
+	}
+	
 	uint8_t* ptr = _reads[relAddr >> 12];
+		
 	if(ptr >= _prgRom && ptr < _prgRom + _prgRomSize) {
 		return { (int)(ptr - _prgRom + (relAddr & 0xFFF)), MemoryType::WsPrgRom };
 	} else if(ptr >= _saveRam && ptr < _saveRam + _saveRamSize) {
@@ -469,6 +476,10 @@ AddressInfo WsMemoryManager::GetAbsoluteAddress(uint32_t relAddr)
 int WsMemoryManager::GetRelativeAddress(AddressInfo& absAddress)
 {
 	switch(absAddress.Type) {
+	    case MemoryType::WsNileBootrom:
+	    case MemoryType::WsNileIpc:
+	    case MemoryType::WsNileSpiTx:
+	    case MemoryType::WsNileSpiRx:
 		case MemoryType::WsPrgRom:
 		case MemoryType::WsCartRam:
 		case MemoryType::WsBootRom: {

@@ -685,6 +685,11 @@ namespace Mesen.Interop
 		WsInternalEeprom,
 		WsPort,
 
+		WsNileBootrom,
+		WsNileIpc,
+		WsNileSpiTx,
+		WsNileSpiRx,
+
 		None,
 	}
 

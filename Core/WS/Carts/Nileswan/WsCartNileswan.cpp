@@ -1,3 +1,4 @@
+#include "Shared/MemoryType.h"
 #include "WS/Carts/WsRtc.h"
 #include "WS/Carts/Nileswan/WsCartNileswan.h"
 #include "pch.h"
@@ -32,11 +33,11 @@ void WsCartNileswan::Reset()
 
 void WsCartNileswan::FpgaReset()
 {
-    bank_rom0 = 0xFFFF;
-	bank_rom1 = 0xFFFF;
-	bank_romL = 0x00FF;
-	bank_ram = 0xFFFF;
-	flash_enable = 0;
+    _state.SelectedBanks[2] = 0xFFFF;
+	_state.SelectedBanks[3] = 0xFFFF;
+	_state.SelectedBanks[0] = 0x00FF;
+	_state.SelectedBanks[1] = 0xFFFF;
+	_state.RomInRamBank = false;
 	nile_spi_cnt = 0;
 	nile_pow_cnt = NILE_POW_UNLOCK;
 	nile_bank_mask = 0xFFFF;
@@ -150,29 +151,29 @@ uint8_t WsCartNileswan::ReadPort(uint16_t index)
 		case 0xCB:
 		    return _cartRtc->ReadPort(index);
 		case IO_CART_FLASH:
-			return flash_enable;
+			return _state.RomInRamBank ? 1 : 0;
 		case IO_BANK_ROM_LINEAR:
-			return bank_romL;
+			return _state.SelectedBanks[0];
 		case IO_BANK_2003_ROM_LINEAR:
-			return bank_romL;
+			return _state.SelectedBanks[0];
 		case IO_BANK_RAM:
-			return bank_ram;
+			return _state.SelectedBanks[1];
 		case IO_BANK_2003_RAM:
-			return bank_ram;
+			return _state.SelectedBanks[1];
 		case IO_BANK_2003_RAM + 1:
-			return bank_ram >> 8;
+			return _state.SelectedBanks[1] >> 8;
 		case IO_BANK_ROM0:
-			return bank_rom0;
+			return _state.SelectedBanks[2];
 		case IO_BANK_2003_ROM0:
-			return bank_rom0;
+			return _state.SelectedBanks[2];
 		case IO_BANK_2003_ROM0 + 1:
-			return bank_rom0 >> 8;
+			return _state.SelectedBanks[2] >> 8;
 		case IO_BANK_ROM1:
-			return bank_rom1;
+			return _state.SelectedBanks[3];
 		case IO_BANK_2003_ROM1:
-			return bank_rom1;
+			return _state.SelectedBanks[3];
 		case IO_BANK_2003_ROM1 + 1:
-			return bank_rom1 >> 8;
+			return _state.SelectedBanks[3] >> 8;
 		case IO_NILE_POW_CNT:
 			return nile_pow_cnt;
 		case IO_NILE_SEG_MASK:
@@ -204,61 +205,61 @@ void WsCartNileswan::WritePort(uint16_t index, uint8_t value)
 			if(!(nile_pow_cnt & NILE_POW_IO_2003)) {
 				break;
 			}
-			flash_enable = value & 0x01;
+			_state.RomInRamBank = value & 0x01;
 			break;
 		case IO_BANK_ROM_LINEAR:
-			bank_romL = value;
+			_state.SelectedBanks[0] = value;
 			break;
 		case IO_BANK_2003_ROM_LINEAR:
 			if(!(nile_pow_cnt & NILE_POW_IO_2003)) {
 				break;
 			}
-			bank_romL = value;
+			_state.SelectedBanks[0] = value;
 			break;
 		case IO_BANK_RAM:
-			bank_ram = (bank_ram & 0xFF00) | value;
+			_state.SelectedBanks[1] = (_state.SelectedBanks[1] & 0xFF00) | value;
 			break;
 		case IO_BANK_2003_RAM:
 			if(!(nile_pow_cnt & NILE_POW_IO_2003)) {
 				break;
 			}
-			bank_ram = (bank_ram & 0xFF00) | value;
+			_state.SelectedBanks[1] = (_state.SelectedBanks[1] & 0xFF00) | value;
 			break;
 		case IO_BANK_2003_RAM + 1:
 			if(!(nile_pow_cnt & NILE_POW_IO_2003)) {
 				break;
 			}
-			bank_ram = (bank_ram & 0xFF) | (value << 8);
+			_state.SelectedBanks[1] = (_state.SelectedBanks[1] & 0xFF) | (value << 8);
 			break;
 		case IO_BANK_ROM0:
-			bank_rom0 = (bank_rom0 & 0xFF00) | value;
+			_state.SelectedBanks[2] = (_state.SelectedBanks[2] & 0xFF00) | value;
 			break;
 		case IO_BANK_2003_ROM0:
 			if(!(nile_pow_cnt & NILE_POW_IO_2003)) {
 				break;
 			}
-			bank_rom0 = (bank_rom0 & 0xFF00) | value;
+			_state.SelectedBanks[2] = (_state.SelectedBanks[2] & 0xFF00) | value;
 			break;
 		case IO_BANK_2003_ROM0 + 1:
 			if(!(nile_pow_cnt & NILE_POW_IO_2003)) {
 				break;
 			}
-			bank_rom0 = (bank_rom0 & 0xFF) | (value << 8);
+			_state.SelectedBanks[2] = (_state.SelectedBanks[2] & 0xFF) | (value << 8);
 			break;
 		case IO_BANK_ROM1:
-			bank_rom1 = (bank_rom1 & 0xFF00) | value;
+			_state.SelectedBanks[3] = (_state.SelectedBanks[3] & 0xFF00) | value;
 			break;
 		case IO_BANK_2003_ROM1:
 			if(!(nile_pow_cnt & NILE_POW_IO_2003)) {
 				break;
 			}
-			bank_rom1 = (bank_rom1 & 0xFF00) | value;
+			_state.SelectedBanks[3] = (_state.SelectedBanks[3] & 0xFF00) | value;
 			break;
 		case IO_BANK_2003_ROM1 + 1:
 			if(!(nile_pow_cnt & NILE_POW_IO_2003)) {
 				break;
 			}
-			bank_rom1 = (bank_rom1 & 0xFF) | (value << 8);
+			_state.SelectedBanks[3] = (_state.SelectedBanks[3] & 0xFF) | (value << 8);
 			break;
 		case IO_NILE_POW_CNT:
 			if(!(nile_pow_cnt & NILE_POW_IO_NILE) && value != NILE_POW_UNLOCK) {
@@ -321,15 +322,17 @@ void WsCartNileswan::WritePort(uint16_t index, uint8_t value)
 			nile_emu_cnt = value & 0x3F;
 			break;
 	}
+	
+	RefreshMappings();
 }
 
 // SPI routing
 
 int WsCartNileswan::GetSpiBankIndex(bool is_swan)
 {
-		bool is_back_buffer = (nile_spi_cnt & NILE_SPI_BUFFER_IDX) != 0;
-		is_back_buffer ^= is_swan;
-		return is_back_buffer ? 0 : 1;
+	bool is_back_buffer = (nile_spi_cnt & NILE_SPI_BUFFER_IDX) != 0;
+	is_back_buffer ^= is_swan;
+	return is_back_buffer ? 0 : 1;
 }
 
 uint8_t WsCartNileswan::SpiExchange(uint8_t tx)
@@ -347,30 +350,87 @@ uint8_t WsCartNileswan::SpiExchange(uint8_t tx)
 
 // Memory routing
 
+MemoryType WsCartNileswan::GetMemoryTypeForBank(uint16_t bank, bool rom, bool linear)
+{
+    if(rom && linear) {
+        bank &= 0x1F;
+        if(bank == (NILE_SEG_ROM_BOOT >> 4)) {
+            return MemoryType::WsNileBootrom;         
+        } else if(bank < (psram_banks >> 4)) {
+            return MemoryType::WsPrgRom;   
+        }
+    } else if(rom) {
+        bank &= 0x1FF;
+        if(bank == NILE_SEG_ROM_BOOT || bank == NILE_SEG_ROM_BOOT_PCV2) {
+            return MemoryType::WsNileBootrom;
+        /* } else if(bank == NILE_SEG_ROM_RX) {
+            return MemoryType::WsNileSpiRx; */
+        } else if(bank < psram_banks) {
+            return MemoryType::WsPrgRom;
+        }
+    } else {
+        bank &= 0xF;
+        if(bank == NILE_SEG_RAM_IPC) {
+            return MemoryType::WsNileIpc;
+        /* } else if(bank == NILE_SEG_RAM_TX) {
+            return MemoryType::WsNileSpiTx; */            
+        } else if(bank < sram_banks) {
+            return MemoryType::WsCartRam;
+        }
+    }
+    return MemoryType::None;
+}
+
+AddressInfo WsCartNileswan::GetAbsoluteAddress(uint32_t relAddr)
+{
+    uint8_t* ptr;
+	ResolveBank(relAddr, &ptr, false, false);
+
+	if(ptr >= buffer_psram && ptr < buffer_psram + (psram_banks * 0x10000)) {
+		return { (int)(ptr - buffer_psram), MemoryType::WsPrgRom };
+	} else if(ptr >= buffer_sram && ptr < buffer_sram + (sram_banks * 0x10000)) {
+		return { (int)(ptr - buffer_sram), MemoryType::WsCartRam };
+	} else if(ptr >= _prgRom && ptr < _prgRom + _prgRomSize) {
+		return { (int)(ptr - _prgRom), MemoryType::WsNileBootrom };
+	} else if(ptr >= buffer_ipc && ptr < buffer_ipc + NILE_IPC_SIZE) {
+		return { (int)(ptr - buffer_ipc), MemoryType::WsNileIpc };
+	/* } else if(ptr >= (uint8_t*)buffer_spi_tx && ptr < (uint8_t*)buffer_spi_tx + NILE_SPI_SIZE) {
+		return { (int)(ptr - (uint8_t*)buffer_spi_tx), MemoryType::WsNileSpiTx };
+	} else if(ptr >= (uint8_t*)buffer_spi_rx && ptr < (uint8_t*)buffer_spi_rx + NILE_SPI_SIZE) {
+		return { (int)(ptr - (uint8_t*)buffer_spi_rx), MemoryType::WsNileSpiRx }; */
+	}
+	
+	return { -1, MemoryType::None };
+}
+
 void WsCartNileswan::RefreshMappings()
 {
-	WsCart::RefreshMappings();
+	Map(0x10000, 0x1FFFF, GetMemoryTypeForBank(_state.SelectedBanks[1], _state.RomInRamBank, false), _state.SelectedBanks[1] * 0x10000, true);
+	Map(0x20000, 0x2FFFF, GetMemoryTypeForBank(_state.SelectedBanks[2], true, false), _state.SelectedBanks[2] * 0x10000, true);
+	Map(0x30000, 0x3FFFF, GetMemoryTypeForBank(_state.SelectedBanks[3], true, false), _state.SelectedBanks[3] * 0x10000, true);
+	Map(0x40000, 0xFFFFF, GetMemoryTypeForBank(_state.SelectedBanks[0], true, true), _state.SelectedBanks[0] * 0x100000 + 0x40000, true);
+	
 	_memoryManager->SetCartFlash(WsRegisterAccess::ReadWrite);
 }
 
 void WsCartNileswan::ResolveBank(uint32_t address, uint8_t** buffer, bool write, bool is_debugger)
 {
 	uint8_t cpu_bank = (address >> 16) & 0xF;
-	bool is_ram = (cpu_bank == 1) && !flash_enable;
+	bool is_ram = (cpu_bank == 1) && !_state.RomInRamBank;
 
 	uint32_t physical_bank;
 	uint16_t mask_bit;
 	if(cpu_bank == 1) {
-		physical_bank = bank_ram;
+		physical_bank = _state.SelectedBanks[1];
 		mask_bit = NILE_SEG_SRAM_LOCK;
 	} else if(cpu_bank == 2) {
-		physical_bank = bank_rom0;
+		physical_bank = _state.SelectedBanks[2];
 		mask_bit = NILE_SEG_ROM0_LOCK;
 	} else if(cpu_bank == 3) {
-		physical_bank = bank_rom1;
+		physical_bank = _state.SelectedBanks[3];
 		mask_bit = NILE_SEG_ROM1_LOCK;
 	} else {
-		physical_bank = (bank_romL << 4) | cpu_bank;
+		physical_bank = (_state.SelectedBanks[0] << 4) | cpu_bank;
 		mask_bit = 0;
 	}
 
@@ -407,7 +467,7 @@ void WsCartNileswan::ResolveBank(uint32_t address, uint8_t** buffer, bool write,
 		if(physical_bank < psram_banks) {
 			*buffer = buffer_psram + physical_address;
 		} else if(physical_bank == NILE_SEG_ROM_BOOT || physical_bank == NILE_SEG_ROM_BOOT_PCV2) {
-			*buffer = _prgRom + (_prgRomSize - 0x200) + (physical_address & 0x1FF);
+			*buffer = _prgRom + (physical_address & (_prgRomSize - 1));
 		} else if(physical_bank == NILE_SEG_ROM_RX && (!write || is_debugger)) {
 			*buffer = buffer_spi_rx[GetSpiBankIndex(true)] + (physical_address & (NILE_SPI_SIZE - 1));
 		}
@@ -424,15 +484,15 @@ uint8_t WsCartNileswan::ReadMemory(uint32_t addr)
 	if((cpu_bank == 2 || cpu_bank == 3) && (nile_emu_cnt & 0x20)) {
 		uint8_t* write_buffer;
 
-		bool old_flash_enable = flash_enable;
-		flash_enable = true;
+		bool old_flash_enable = _state.RomInRamBank;
+		_state.RomInRamBank = true;
 		ResolveBank((addr & 0xFFFF) | 0x10000, &write_buffer, false, false);
-		flash_enable = old_flash_enable;
+		_state.RomInRamBank = old_flash_enable;
 
 		*write_buffer = *buffer;
 	}
 
-	if((nile_emu_cnt & NILE_EMU_FLASH_FSM) && flash_enable && in_sram) {
+	if((nile_emu_cnt & NILE_EMU_FLASH_FSM) && _state.RomInRamBank && in_sram) {
 		if(nile_ww_state == WW_STATE_FAST) {
 			return 0x00;
 		}
@@ -453,7 +513,7 @@ void WsCartNileswan::WriteMemory(uint32_t addr, uint8_t value)
     bool in_sram = (addr & 0xF0000) == 0x10000;
 	ResolveBank(addr, &buffer, true, false);
 
-	if((nile_emu_cnt & NILE_EMU_FLASH_FSM) && flash_enable && in_sram) {
+	if((nile_emu_cnt & NILE_EMU_FLASH_FSM) && _state.RomInRamBank && in_sram) {
 		if(nile_ww_state == WW_STATE_READ) {
 			if(value == 0xAA) {
 				nile_ww_state = WW_STATE_UNLOCK_1;
