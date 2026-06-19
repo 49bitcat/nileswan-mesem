@@ -179,6 +179,10 @@ public:
 			case MemoryType::WsBootRom:
 			case MemoryType::WsInternalEeprom:
 			case MemoryType::WsPort:
+			case MemoryType::WsNileBootrom:
+			case MemoryType::WsNileIpc:
+			case MemoryType::WsNileSpiTx:
+			case MemoryType::WsNileSpiRx:
 				return CpuType::Ws;
 
 			default:
@@ -271,6 +275,7 @@ public:
 			case MemoryType::SmsBootRom:
 			case MemoryType::GbaBootRom:
 			case MemoryType::WsBootRom:
+			case MemoryType::WsNileBootrom:
 				return true;
 
 			default:
@@ -294,6 +299,7 @@ public:
 			case MemoryType::SmsCartRam:
 			case MemoryType::GbaSaveRam:
 			case MemoryType::WsCartRam:
+			case MemoryType::WsNileIpc:
 				return false;
 
 			default:
