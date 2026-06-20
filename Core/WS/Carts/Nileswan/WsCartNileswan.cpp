@@ -230,6 +230,8 @@ uint8_t WsCartNileswan::ReadPort(uint16_t index)
 				return _nstate.SpiCnt;
 			case IO_NILE_SPI_CNT + 1:
 				return _nstate.SpiCnt >> 8;
+			case IO_NILE_EMU_CNT:
+				return _nstate.EmuCnt;
 			case IO_NILE_IRQ_STATUS:
 				return _nstate.IrqStatus;
 			case IO_NILE_IRQ_ENABLE:
