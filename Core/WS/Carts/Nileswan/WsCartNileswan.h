@@ -53,6 +53,7 @@ protected:
 	uint8_t* ResolveBank(uint32_t address, bool write, bool isDebugger);
 	uint16_t ResolveBankValue(int cpuBank) const;
 	int GetSpiBankIndex(bool consoleSide) const;
+	void RefreshMappingsRange(int start, int end);
 
 public:
 	uint8_t* buffer_psram = nullptr;
@@ -74,7 +75,6 @@ public:
 	void LoadBattery() override;
 	void SaveBattery() override;
 	void RefreshMappings() override;
-	void RefreshMappingsAndBuffers();
 
 	bool IsTFPowered() const;
 
