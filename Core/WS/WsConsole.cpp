@@ -1,8 +1,3 @@
-// Required for nileswan fopen()
-#if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_WARNINGS)
- #define _CRT_SECURE_NO_WARNINGS
-#endif
-
 #include "NES/RomData.h"
 #include "WS/Carts/WsCartFlash.h"
 #include "pch.h"
@@ -160,19 +155,22 @@ LoadRomResult WsConsole::LoadRom(VirtualFile& romFile)
 	_dmaController.reset(new WsDmaController());
 	_ppu.reset(new WsPpu(_emu, this, _memoryManager.get(), _timer.get(), _workRam));
 	_apu.reset(new WsApu(_emu, this, _memoryManager.get(), _dmaController.get()));
-	if (isNileswan) {
-	    WsCartNileswan *nileCart = new WsCartNileswan(256, 8);
-	    _cart.reset(nileCart);
+	if(isNileswan) {
+		WsCartNileswan* nileCart = new WsCartNileswan(256, 8);
+		_cart.reset(nileCart);
 
 		std::regex ipl0_ext("\\.ipl0");
 		nileCart->flash.file = fopen(std::regex_replace(romFile.GetFilePath(), ipl0_ext, ".spi").c_str(), "r+b");
 		nileCart->tf.file = fopen(std::regex_replace(romFile.GetFilePath(), ipl0_ext, ".img").c_str(), "r+b");
+		if(!nileCart->flash.file || !nileCart->tf.file) {
+			return LoadRomResult::Failure;
+		}
 
 		_emu->RegisterMemory(MemoryType::WsPrgRom, nileCart->buffer_psram, nileCart->psram_banks * 0x10000);
 		_emu->RegisterMemory(MemoryType::WsCartRam, nileCart->buffer_sram, nileCart->sram_banks * 0x10000);
 		_emu->RegisterMemory(MemoryType::WsNileIpc, nileCart->buffer_ipc, NILE_IPC_SIZE);
 	} else {
-	    _cart.reset(IsWWCart() ? new WsCartFlash() : new WsCart());
+		_cart.reset(IsWWCart() ? new WsCartFlash() : new WsCart());
 	}
 
 	_cart->Init(_memoryManager.get(), _cartEeprom.get(), _cartRtc.get(), _prgRom, _prgRomSize, _saveRam, _saveRamSize);

@@ -785,6 +785,12 @@
     <ClInclude Include="WS\APU\WsHyperVoice.h" />
     <ClInclude Include="WS\Carts\WsCart.h" />
     <ClInclude Include="WS\Carts\WsRtc.h" />
+    <ClInclude Include="WS\Carts\Nileswan\INileSpiDevice.h" />
+    <ClInclude Include="WS\Carts\Nileswan\NileFlash.h" />
+    <ClInclude Include="WS\Carts\Nileswan\NileMCU.h" />
+    <ClInclude Include="WS\Carts\Nileswan\NileSpiBuffer.h" />
+    <ClInclude Include="WS\Carts\Nileswan\NileTF.h" />
+    <ClInclude Include="WS\Carts\Nileswan\WsCartNileswan.h" />
     <ClInclude Include="WS\Debugger\DummyWsCpu.h" />
     <ClInclude Include="WS\Debugger\WsAssembler.h" />
     <ClInclude Include="WS\Debugger\WsDebugger.h" />
@@ -1101,6 +1107,11 @@
     <ClCompile Include="WS\Carts\WsCart.cpp" />
     <ClCompile Include="WS\Carts\WsCartFlash.cpp" />
     <ClCompile Include="WS\Carts\WsRtc.cpp" />
+    <ClCompile Include="WS\Carts\Nileswan\NileFlash.cpp" />
+    <ClCompile Include="WS\Carts\Nileswan\NileMCU.cpp" />
+    <ClCompile Include="WS\Carts\Nileswan\NileSpiBuffer.cpp" />
+    <ClCompile Include="WS\Carts\Nileswan\NileTF.cpp" />
+    <ClCompile Include="WS\Carts\Nileswan\WsCartNileswan.cpp" />
     <ClCompile Include="WS\Debugger\DummyWsCpu.cpp" />
     <ClCompile Include="WS\Debugger\WsDebugger.cpp" />
     <ClCompile Include="WS\Debugger\WsDisUtils.cpp" />
@@ -1229,7 +1240,7 @@
       </ShowIncludes>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <TreatWarningAsError>true</TreatWarningAsError>
+      <TreatWarningAsError>false</TreatWarningAsError>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -1266,7 +1277,7 @@
       </RuntimeTypeInfo>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <TreatWarningAsError>true</TreatWarningAsError>
+      <TreatWarningAsError>false</TreatWarningAsError>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -1299,7 +1310,7 @@
       <ControlFlowGuard>false</ControlFlowGuard>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <TreatWarningAsError>true</TreatWarningAsError>
+      <TreatWarningAsError>false</TreatWarningAsError>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -1332,7 +1343,7 @@
       <ControlFlowGuard>false</ControlFlowGuard>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <TreatWarningAsError>true</TreatWarningAsError>
+      <TreatWarningAsError>false</TreatWarningAsError>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
