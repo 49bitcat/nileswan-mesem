@@ -50,10 +50,9 @@ protected:
 	 WsRtc* _rtc = nullptr;
 
 	uint8_t SpiExchange(uint8_t tx);
-	void ResolveBank(uint32_t address, uint8_t** buffer, bool write, bool is_debugger);
-
-	int GetSpiBankIndex(bool is_swan);
-	MemoryType GetMemoryTypeForBank(uint16_t bank, bool rom, bool linear);
+	uint8_t* ResolveBank(uint32_t address, bool write, bool is_debugger);
+	uint16_t ResolveBankValue(int cpu_bank) const;
+	int GetSpiBankIndex(bool is_swan) const;
 
 public:
 	uint8_t* buffer_psram = nullptr;
@@ -76,9 +75,9 @@ public:
 	void SaveBattery() override;
 	void RefreshMappings() override;
 
-	bool IsTFPowered();
+	bool IsTFPowered() const;
 
-	uint32_t GetSelectedBank(uint8_t index);
+	uint32_t GetSelectedBank(uint8_t index) const;
 	AddressInfo GetAbsoluteAddress(uint32_t relAddr);
 
 	uint8_t ReadPort(uint16_t port) override;
