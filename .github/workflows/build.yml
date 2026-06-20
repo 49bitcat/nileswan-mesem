@@ -66,14 +66,12 @@ jobs:
     if: ${{ (github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository) }}
     strategy:
       matrix:
-        compiler: [gcc, clang, clang_aot]
+        compiler: [clang, clang_aot]
         platform: [
           {os: ubuntu-22.04, path: x64, libraUrl: librashader-x64-ubuntu.zip},
           {os: ubuntu-22.04-arm, path: arm64, libraUrl: librashader-arm-ubuntu.zip}
         ]
         include:
-          - compiler: gcc
-            make_flags: "USE_GCC=true"
           - compiler: clang
             make_flags: ""
           - compiler: clang_aot
