@@ -296,8 +296,8 @@ uint8_t NileMCU::SpiExchange(uint8_t tx) {
                         continue;
                     }
                     // TODO
-                    /* if (!Comm_RecvByte(response + len))
-                        break; */
+                    /* if (!Comm_RecvByte(response + len)) */
+                        break;
                 }
                 printf("nileswan/spi/mcu: USB serial read %d bytes, found %d\n", arg, len);
                 SendSpiResponse(len, response);
@@ -309,18 +309,17 @@ uint8_t NileMCU::SpiExchange(uint8_t tx) {
                 printf("nileswan/spi/mcu: USB serial write %d bytes\n", arg);
                 int len = 0;
                 // TODO
-                len = arg;
-                /* for (; len < arg; len++) {
-                    if (!Comm_SendByte(rxBuf.data[len]))
+                for (; len < arg; len++) {
+                    /* if (!Comm_SendByte(rxBuf.data[len])) */
                         break;
-                } */
+                }
                 rxBuf.Pop(NULL, arg);
                 SendSpiResponse(2, &len);
             } break;
             case MCU_SPI_CMD_USB_CDC_AVAILABLE: {
                 // TODO: implement
                 uint16_t len = state.cdc_unget < 0 ? 0 : 1;
-                uint8_t c;
+                // uint8_t c;
                 if (!len) {
                     // TODO
                     /* if (Comm_RecvByte(&c)) {
