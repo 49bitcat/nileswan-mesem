@@ -1,3 +1,8 @@
+// Required for nileswan fopen()
+#if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_WARNINGS)
+ #define _CRT_SECURE_NO_WARNINGS
+#endif
+
 #include "pch.h"
 #include "WS/WsConsole.h"
 #include "WS/WsCpu.h"
@@ -541,6 +546,9 @@ WsState WsConsole::GetState()
 	}
 	if(_cartRtc) {
 		state.CartRtc = _cartRtc->GetWsState();
+	}
+	if(WsCartNileswan* nileCart = dynamic_cast<WsCartNileswan*>(_cart.get())) {
+	    state.CartNile = nileCart->GetNileState();
 	}
 	return state;
 }

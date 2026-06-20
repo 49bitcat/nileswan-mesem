@@ -1,4 +1,5 @@
 #include "WS/Carts/Nileswan/NileSpiBuffer.h"
+#include "Serializer.h"
 #include "pch.h"
 
 NileSpiBuffer::NileSpiBuffer(size_t _size)
@@ -56,5 +57,7 @@ bool NileSpiBuffer::Pop(uint8_t* _data, size_t _length)
 
 void NileSpiBuffer::Serialize(Serializer& s)
 {
-	// TODO
+    SV(pos);
+    SV(size);
+	SVArray(data, size);
 }

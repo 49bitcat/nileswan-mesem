@@ -1,4 +1,5 @@
 #include "WS/Carts/Nileswan/NileMCU.h"
+#include "Serializer.h"
 #include "WS/Carts/Nileswan/WsCartNileswan.h"
 #include "WS/Carts/Nileswan/hardware.h"
 #include "WS/Carts/WsRtc.h"
@@ -396,5 +397,18 @@ uint8_t NileMCU::SpiExchange(uint8_t tx) {
 
 void NileMCU::Serialize(Serializer& s)
 {
-	// TODO
+    SV(rxBuf);
+    SV(txBuf);
+    
+    SV(state.boot_mode);
+    SV(state.boot_started);
+    SV(state.boot_waiting_ack);
+    SV(state.boot_cmd);
+    SV(state.boot_step);
+    SV(state.boot_erase_count);
+    SV(state.boot_dest_address);
+    SV(state.cdc_unget);
+    SV(persistent.eeprom_mode);
+    SV(persistent.save_id);
+    SVArray(persistent.eeprom_data, 1024);
 }
