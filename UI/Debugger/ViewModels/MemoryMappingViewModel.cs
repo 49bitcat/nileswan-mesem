@@ -548,7 +548,7 @@ namespace Mesen.Debugger.ViewModels
 					absAddr.Address = -1;
 				}
 
-				if(prevAddr.Type == absAddr.Type && prevAddr.Address + minSize == absAddr.Address && mappings[^1].Length < 0x10000) {
+				if(prevAddr.Type == absAddr.Type && (prevAddr.Address == absAddr.Address || prevAddr.Address + minSize == absAddr.Address) && mappings[^1].Length < 0x10000) {
 					mappings[^1].Length += minSize;
 					mappings[^1].Page = (absAddr.Address + minSize - mappings[^1].Length) / 0x10000;
 				} else if(absAddr.Address >= 0) {
