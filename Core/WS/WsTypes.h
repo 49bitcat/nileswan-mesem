@@ -475,6 +475,8 @@ struct WsNileCartState
     uint16_t SpiCnt;
     uint16_t BankMask;
     int8_t FpgaCore;
+    uint8_t IrqStatus;
+    uint8_t IrqEnable;
 };
 
 struct WsState
