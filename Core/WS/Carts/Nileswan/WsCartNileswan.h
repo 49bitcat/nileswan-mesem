@@ -47,9 +47,9 @@ private:
 
 protected:
 	uint8_t SpiExchange(uint8_t tx);
-	void ResolveBank(uint32_t address, uint8_t** buffer, bool write, bool is_debugger);
-	int GetSpiBankIndex(bool is_swan);
-	MemoryType GetMemoryTypeForBank(uint16_t bank, bool rom, bool linear);
+	uint8_t* ResolveBank(uint32_t address, bool write, bool is_debugger);
+	uint16_t ResolveBankValue(int cpu_bank) const;
+	int GetSpiBankIndex(bool is_swan) const;
 
 public:
 	uint8_t* buffer_psram = nullptr;
@@ -68,7 +68,7 @@ public:
 
 	void Reset();
 	void FpgaReset();
-	bool IsTFPowered();
+	bool IsTFPowered() const;
 	void RefreshMappings() override;
 
 	AddressInfo GetAbsoluteAddress(uint32_t relAddr);
