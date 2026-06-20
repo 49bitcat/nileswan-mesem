@@ -9,7 +9,20 @@
 
 WsRtc::WsRtc(Emulator* emu, WsConsole* console) : S3511ARtc(emu), _console(console)
 {
+	Reset();
+}
+
+void WsRtc::Reset()
+{
+	_state.Data = 0;
+	_state.Command = 0;
+	_state.Busy = false;
 	_state.Ready = true;
+
+	_bytesLeft = 0;
+	_commandTransferred = false;
+	_transferClock = 0;
+	ResetBus();
 }
 
 bool WsRtc::IsCommandRead()
