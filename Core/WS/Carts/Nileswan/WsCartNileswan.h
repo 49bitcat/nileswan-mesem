@@ -78,6 +78,9 @@ public:
 	bool IsTFPowered() const;
 
 	uint32_t GetSelectedBank(uint8_t index) const;
+	uint32_t GetMaskedPsramSize() const;
+	uint32_t GetMaskedSramSize() const;
+
 	AddressInfo GetAbsoluteAddress(uint32_t relAddr);
 
 	uint8_t ReadPort(uint16_t port) override;

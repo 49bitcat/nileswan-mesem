@@ -1,4 +1,5 @@
 #include "pch.h"
+#include "Shared/MessageManager.h"
 #include "Utilities/Serializer.h"
 #include "WS/Carts/Nileswan/NileSpiBuffer.h"
 
@@ -21,8 +22,12 @@ void NileSpiBuffer::Reset()
 void NileSpiBuffer::Push(const uint8_t* _data, size_t _length)
 {
 	if(pos + _length >= size) {
-		printf("nileswan/spi: !!! BUFFER OVERRUN !!! (%lu + %lu >= %lu)\n", pos, _length, size);
-		exit(1);
+        if(!overrunLogged) {
+            printf("nileswan/spi: !!! BUFFER OVERRUN !!! (%lu + %lu >= %lu)\n", pos, _length, size);
+            MessageManager::Log("[Nile] SPI buffer overrun (device fault?)");
+            overrunLogged = true;
+        }
+		return;
 	}
 	if(_data != NULL) {
 		memcpy(data + pos, _data, _length);

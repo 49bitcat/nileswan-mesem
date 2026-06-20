@@ -1168,6 +1168,19 @@ ConsoleMemoryInfo Emulator::GetMemory(MemoryType type)
 	return _consoleMemory[(int)type];
 }
 
+uint32_t Emulator::GetVirtualMemorySize(MemoryType type)
+{
+    shared_ptr<IConsole> console = GetConsole();
+    if(console) {
+        uint32_t size = console->GetVirtualMemorySize(type);
+        if(size) {
+            return size;
+        }
+    }
+    
+	return _consoleMemory[(int)type].Size;
+}
+
 AudioTrackInfo Emulator::GetAudioTrackInfo()
 {
 	shared_ptr<IConsole> console = GetConsole();
