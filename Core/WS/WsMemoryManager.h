@@ -41,8 +41,8 @@ private:
 	WsMemoryManagerState _state = {};
 
 	WsRegisterAccess _cartFlash;
-	uint8_t* _reads[256] = {};
-	uint8_t* _writes[256] = {};
+	uint8_t* _reads[2048] = {};
+	uint8_t* _writes[2048] = {};
 
 	bool IsWordPort(uint16_t port);
 	uint8_t GetPortWaitStates(uint16_t port);
@@ -75,9 +75,9 @@ public:
 		if(((int)_cartFlash & (int)WsRegisterAccess::Read) && addr >= 0x10000) {
 			value = _cart->ReadMemory(addr);
 		} else {
-			uint8_t* handler = _reads[addr >> 12];
+			uint8_t* handler = _reads[addr >> 9];
 			if(handler) {
-				value = handler[addr & 0xFFF];
+				value = handler[addr & 0x1FF];
 			}
 		}
 
@@ -91,9 +91,9 @@ public:
 		if(((int)_cartFlash & (int)WsRegisterAccess::Write) && addr >= 0x10000) {
 			_cart->WriteMemory(addr, value);
 		} else {
-			uint8_t* handler = _writes[addr >> 12];
+			uint8_t* handler = _writes[addr >> 9];
 			if(handler) {
-				handler[addr & 0xFFF] = value;
+				handler[addr & 0x1FF] = value;
 			}
 		}
 	}

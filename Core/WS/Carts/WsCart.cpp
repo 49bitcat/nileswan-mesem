@@ -24,8 +24,9 @@ WsCart::WsCart()
 	_state.SelectedBanks[3] = 0x3FF;
 }
 
-void WsCart::Init(WsMemoryManager* memoryManager, WsEeprom* cartEeprom, WsRtc* cartRtc, uint8_t* prgRom, uint32_t prgRomSize, uint8_t* saveRam, uint32_t saveRamSize)
+void WsCart::Init(Emulator* emulator, WsMemoryManager* memoryManager, WsEeprom* cartEeprom, WsRtc* cartRtc, uint8_t* prgRom, uint32_t prgRomSize, uint8_t* saveRam, uint32_t saveRamSize)
 {
+    _emu = emulator;
 	_memoryManager = memoryManager;
 	_cartEeprom = cartEeprom;
 	_cartRtc = cartRtc;

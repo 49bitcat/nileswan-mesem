@@ -72,13 +72,13 @@ void WsMemoryManager::Map(uint32_t start, uint32_t end, MemoryType type, uint32_
 		}
 
 		src += offset;
-		for(uint32_t i = start; i < end; i += 0x1000) {
-			_reads[i >> 12] = src;
-			_writes[i >> 12] = readonly ? nullptr : src;
+		for(uint32_t i = start; i < end; i += 0x200) {
+			_reads[i >> 9] = src;
+			_writes[i >> 9] = readonly ? nullptr : src;
 
 			if(src) {
-				src += 0x1000;
-				offset = (offset + 0x1000);
+				src += 0x200;
+				offset = (offset + 0x200);
 				if(offset >= size) {
 					offset = 0;
 					src = (uint8_t*)_emu->GetMemory(type).Memory;
@@ -92,9 +92,9 @@ void WsMemoryManager::Map(uint32_t start, uint32_t end, MemoryType type, uint32_
 
 void WsMemoryManager::Unmap(uint32_t start, uint32_t end)
 {
-	for(uint32_t i = start; i < end; i += 0x1000) {
-		_reads[i >> 12] = nullptr;
-		_writes[i >> 12] = nullptr;
+	for(uint32_t i = start; i < end; i += 0x200) {
+		_reads[i >> 9] = nullptr;
+		_writes[i >> 9] = nullptr;
 	}
 }
 
@@ -103,9 +103,9 @@ uint8_t WsMemoryManager::DebugRead(uint32_t addr)
 	if(((int)_cartFlash & (int)WsRegisterAccess::Read) && addr >= 0x10000) {
 		return _cart->ReadMemory(addr);
 	}
-	uint8_t* handler = _reads[addr >> 12];
+	uint8_t* handler = _reads[addr >> 9];
 	if(handler) {
-		return handler[addr & 0xFFF];
+		return handler[addr & 0x1FF];
 	}
 	return 0;
 }
@@ -116,9 +116,9 @@ void WsMemoryManager::DebugWrite(uint32_t addr, uint8_t value)
 		_cart->WriteMemory(addr, value);
 		return;
 	}
-	uint8_t* handler = _writes[addr >> 12];
+	uint8_t* handler = _writes[addr >> 9];
 	if(handler) {
-		handler[addr & 0xFFF] = value;
+		handler[addr & 0x1FF] = value;
 	}
 }
 
@@ -460,14 +460,14 @@ AddressInfo WsMemoryManager::GetAbsoluteAddress(uint32_t relAddr)
 	    return nileCart->GetAbsoluteAddress(relAddr);
 	}
 	
-	uint8_t* ptr = _reads[relAddr >> 12];
+	uint8_t* ptr = _reads[relAddr >> 9];
 		
 	if(ptr >= _prgRom && ptr < _prgRom + _prgRomSize) {
-		return { (int)(ptr - _prgRom + (relAddr & 0xFFF)), MemoryType::WsPrgRom };
+		return { (int)(ptr - _prgRom + (relAddr & 0x1FF)), MemoryType::WsPrgRom };
 	} else if(ptr >= _saveRam && ptr < _saveRam + _saveRamSize) {
-		return { (int)(ptr - _saveRam + (relAddr & 0xFFF)), MemoryType::WsCartRam };
+		return { (int)(ptr - _saveRam + (relAddr & 0x1FF)), MemoryType::WsCartRam };
 	} else if(ptr >= _bootRom && ptr < _bootRom + _bootRomSize) {
-		return { (int)(ptr - _bootRom + (relAddr & 0xFFF)), MemoryType::WsBootRom };
+		return { (int)(ptr - _bootRom + (relAddr & 0x1FF)), MemoryType::WsBootRom };
 	}
 
 	return { -1, MemoryType::None };
@@ -484,12 +484,12 @@ int WsMemoryManager::GetRelativeAddress(AddressInfo& absAddress)
 		case MemoryType::WsCartRam:
 		case MemoryType::WsBootRom: {
 			//Use the closest mirror to the current code segment
-			uint8_t startBank = (_cpu->GetState().CS >> 12) << 4;
-			for(int32_t i = 0; i < 256; i++) {
-				uint8_t bank = (uint8_t)(startBank + i);
-				AddressInfo blockAddr = GetAbsoluteAddress(bank * 0x1000);
-				if(blockAddr.Type == absAddress.Type && (blockAddr.Address & ~0xFFF) == (absAddress.Address & ~0xFFF)) {
-					return (bank << 12) | (absAddress.Address & 0xFFF);
+			uint16_t startBank = (_cpu->GetState().CS >> 12) << 7;
+			for(int32_t i = 0; i < 2048; i++) {
+				uint16_t bank = (startBank + i) & 2047;
+				AddressInfo blockAddr = GetAbsoluteAddress(bank * 0x200);
+				if(blockAddr.Type == absAddress.Type && (blockAddr.Address & ~0x1FF) == (absAddress.Address & ~0x1FF)) {
+					return (bank << 9) | (absAddress.Address & 0x1FF);
 				}
 			}
 			return -1;

@@ -2,6 +2,7 @@
 #include "pch.h"
 #include "WS/WsTypes.h"
 #include "Utilities/ISerializable.h"
+#include "Shared/Emulator.h"
 #include "Shared/MemoryType.h"
 
 class WsConsole;
@@ -17,6 +18,7 @@ protected:
 	WsMemoryManager* _memoryManager = nullptr;
 	WsEeprom* _cartEeprom = nullptr;
 	WsRtc* _cartRtc = nullptr;
+	Emulator* _emu = nullptr;
 
 	uint8_t* _prgRom = nullptr;
 	uint32_t _prgRomSize = 0;
@@ -32,7 +34,7 @@ public:
 	WsCart();
 	virtual ~WsCart() {}
 
-	virtual void Init(WsMemoryManager* memoryManager, WsEeprom* cartEeprom, WsRtc* cartRtc, uint8_t* prgRom, uint32_t prgRomSize, uint8_t* saveRam, uint32_t saveRamSize);
+	virtual void Init(Emulator* emulator, WsMemoryManager* memoryManager, WsEeprom* cartEeprom, WsRtc* cartRtc, uint8_t* prgRom, uint32_t prgRomSize, uint8_t* saveRam, uint32_t saveRamSize);
 	virtual void RefreshMappings();
 
 	WsCartState& GetState() { return _state; }
