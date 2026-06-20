@@ -1,3 +1,8 @@
+// Required for nileswan fopen()
+#if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_WARNINGS)
+ #define _CRT_SECURE_NO_WARNINGS
+#endif
+
 #include "NES/RomData.h"
 #include "WS/Carts/WsCartFlash.h"
 #include "pch.h"
@@ -535,6 +540,12 @@ WsState WsConsole::GetState()
 	}
 	if(_cartRtc) {
 		state.CartRtc = _cartRtc->GetWsState();
+	}
+	if(WsCartNileswan* nileCart = dynamic_cast<WsCartNileswan*>(_cart.get())) {
+	    state.CartNile = nileCart->GetNileState();
+		state.IsNileswan = true;
+	} else {
+	    state.IsNileswan = false;
 	}
 	return state;
 }

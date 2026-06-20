@@ -1,7 +1,9 @@
+#include "pch.h"
+#include "Serializer.h"
 #include "Shared/MemoryType.h"
+#include "WS/Carts/WsCart.h"
 #include "WS/Carts/WsRtc.h"
 #include "WS/Carts/Nileswan/WsCartNileswan.h"
-#include "pch.h"
 #include "WS/WsMemoryManager.h"
 #include "hardware.h"
 
@@ -26,7 +28,7 @@ WsCartNileswan::~WsCartNileswan()
 
 void WsCartNileswan::Reset()
 {
-	nile_fpga_core = -1;
+	_nstate.FpgaCore = -1;
 	FpgaReset();
 
 	flash.Reset();
@@ -36,16 +38,16 @@ void WsCartNileswan::Reset()
 
 void WsCartNileswan::FpgaReset()
 {
-    _state.SelectedBanks[0] = 0x00FF;
+	_state.SelectedBanks[0] = 0x00FF;
 	_state.SelectedBanks[1] = 0xFFFF;
 	_state.SelectedBanks[2] = 0xFFFF;
 	_state.SelectedBanks[3] = 0xFFFF;
 	_state.RomInRamBank = false;
-	nile_spi_cnt = 0;
-	nile_pow_cnt = NILE_POW_UNLOCK;
-	nile_bank_mask = 0xFFFF;
-	nile_emu_cnt = 0;
-	nile_ww_state = WW_STATE_READ;
+	_nstate.SpiCnt = 0;
+	_nstate.PowCnt = NILE_POW_UNLOCK;
+	_nstate.BankMask = 0xFFFF;
+	_nstate.EmuCnt = 0;
+	wwState = WwState::READ;
 
 	memset(buffer_ipc, 0, sizeof(buffer_ipc));
 
@@ -56,36 +58,36 @@ void WsCartNileswan::FpgaReset()
 
 bool WsCartNileswan::IsTFPowered()
 {
-	return nile_pow_cnt & NILE_POW_TF;
+	return _nstate.PowCnt & NILE_POW_TF;
 }
 
 // I/O handling
 
 void WsCartNileswan::OnSpiCntUpdate(uint16_t prev_spi_cnt)
 {
-	if(!(nile_spi_cnt & NILE_SPI_390KHZ) && !(nile_pow_cnt & NILE_POW_CLOCK)) {
+	if(!(_nstate.SpiCnt & NILE_SPI_390KHZ) && !(_nstate.PowCnt & NILE_POW_CLOCK)) {
 		return;
 	}
 
-	if((nile_spi_cnt & NILE_SPI_DEV_MASK) != NILE_SPI_DEV_FLASH) {
+	if((_nstate.SpiCnt & NILE_SPI_DEV_MASK) != NILE_SPI_DEV_FLASH) {
 		flash.Reset();
 	}
 
-	if(nile_spi_cnt & NILE_SPI_BUSY) {
+	if(_nstate.SpiCnt & NILE_SPI_BUSY) {
 		const char* device_name = "none";
-		if((nile_spi_cnt & NILE_SPI_DEV_MASK) == NILE_SPI_DEV_TF) {
+		if((_nstate.SpiCnt & NILE_SPI_DEV_MASK) == NILE_SPI_DEV_TF) {
 			device_name = "TF card";
-		} else if((nile_spi_cnt & NILE_SPI_DEV_MASK) == NILE_SPI_DEV_FLASH) {
+		} else if((_nstate.SpiCnt & NILE_SPI_DEV_MASK) == NILE_SPI_DEV_FLASH) {
 			device_name = "SPI flash";
-		} else if((nile_spi_cnt & NILE_SPI_DEV_MASK) == NILE_SPI_DEV_MCU) {
+		} else if((_nstate.SpiCnt & NILE_SPI_DEV_MASK) == NILE_SPI_DEV_MCU) {
 			device_name = "MCU";
 		}
 
 		uint8_t* tx_buffer = buffer_spi_tx[GetSpiBankIndex(false)];
 		uint8_t* rx_buffer = buffer_spi_rx[GetSpiBankIndex(false)];
-		uint32_t length = (nile_spi_cnt & 0x1FF) + 1;
+		uint32_t length = (_nstate.SpiCnt & 0x1FF) + 1;
 		uint32_t pos = 0;
-		uint16_t mode = nile_spi_cnt & NILE_SPI_MODE_MASK;
+		uint16_t mode = _nstate.SpiCnt & NILE_SPI_MODE_MASK;
 		if(mode == NILE_SPI_MODE_WAIT_READ) {
 			int32_t timeout = 8192;
 			uint32_t bytes_skipped = 0;
@@ -131,16 +133,16 @@ void WsCartNileswan::OnSpiCntUpdate(uint16_t prev_spi_cnt)
 			printf("]");
 		}
 		printf("\n");
-		nile_spi_cnt = nile_spi_cnt & ~NILE_SPI_BUSY;
+		_nstate.SpiCnt = _nstate.SpiCnt & ~NILE_SPI_BUSY;
 	}
 	fflush(stdout);
 }
 
 void WsCartNileswan::OnPowCntUpdate(uint8_t new_value)
 {
-	uint8_t old_value = nile_pow_cnt;
-	nile_pow_cnt = new_value;
-	if(!(nile_pow_cnt & NILE_POW_TF)) {
+	uint8_t old_value = _nstate.PowCnt;
+	_nstate.PowCnt = new_value;
+	if(!(_nstate.PowCnt & NILE_POW_TF)) {
 		tf.Reset();
 	}
 	if(!(old_value & NILE_POW_MCU_RESET) && (new_value & NILE_POW_MCU_RESET)) {
@@ -181,17 +183,17 @@ uint8_t WsCartNileswan::ReadPort(uint16_t index)
 		case IO_BANK_2003_ROM1 + 1:
 			return _state.SelectedBanks[3] >> 8;
 		case IO_NILE_POW_CNT:
-			return nile_pow_cnt;
+			return _nstate.PowCnt;
 		case IO_NILE_SEG_MASK:
-			return nile_bank_mask;
+			return _nstate.BankMask;
 		case IO_NILE_SEG_MASK + 1:
-			return nile_bank_mask >> 8;
+			return _nstate.BankMask >> 8;
 		case IO_NILE_SPI_CNT:
-			return nile_spi_cnt;
+			return _nstate.SpiCnt;
 		case IO_NILE_SPI_CNT + 1:
-			return nile_spi_cnt >> 8;
+			return _nstate.SpiCnt >> 8;
 		case IO_NILE_EMU_CNT:
-			return nile_emu_cnt;
+			return _nstate.EmuCnt;
 		case IO_NILE_BOARD_REVISION:
 			return NILE_EMULATED_BOARD_REVISION;
 	}
@@ -203,12 +205,12 @@ void WsCartNileswan::WritePort(uint16_t index, uint8_t value)
 	switch(index) {
 		case 0xCA:
 		case 0xCB:
-			if(nile_pow_cnt & NILE_POW_IO_2003) {
+			if(_nstate.PowCnt & NILE_POW_IO_2003) {
 				_cartRtc->WritePort(index, value);
 			}
 			break;
 		case IO_CART_FLASH:
-			if(!(nile_pow_cnt & NILE_POW_IO_2003)) {
+			if(!(_nstate.PowCnt & NILE_POW_IO_2003)) {
 				break;
 			}
 			_state.RomInRamBank = value & 0x01;
@@ -217,7 +219,7 @@ void WsCartNileswan::WritePort(uint16_t index, uint8_t value)
 			_state.SelectedBanks[0] = value;
 			break;
 		case IO_BANK_2003_ROM_LINEAR:
-			if(!(nile_pow_cnt & NILE_POW_IO_2003)) {
+			if(!(_nstate.PowCnt & NILE_POW_IO_2003)) {
 				break;
 			}
 			_state.SelectedBanks[0] = value;
@@ -226,13 +228,13 @@ void WsCartNileswan::WritePort(uint16_t index, uint8_t value)
 			_state.SelectedBanks[1] = (_state.SelectedBanks[1] & 0xFF00) | value;
 			break;
 		case IO_BANK_2003_RAM:
-			if(!(nile_pow_cnt & NILE_POW_IO_2003)) {
+			if(!(_nstate.PowCnt & NILE_POW_IO_2003)) {
 				break;
 			}
 			_state.SelectedBanks[1] = (_state.SelectedBanks[1] & 0xFF00) | value;
 			break;
 		case IO_BANK_2003_RAM + 1:
-			if(!(nile_pow_cnt & NILE_POW_IO_2003)) {
+			if(!(_nstate.PowCnt & NILE_POW_IO_2003)) {
 				break;
 			}
 			_state.SelectedBanks[1] = (_state.SelectedBanks[1] & 0xFF) | (value << 8);
@@ -241,13 +243,13 @@ void WsCartNileswan::WritePort(uint16_t index, uint8_t value)
 			_state.SelectedBanks[2] = (_state.SelectedBanks[2] & 0xFF00) | value;
 			break;
 		case IO_BANK_2003_ROM0:
-			if(!(nile_pow_cnt & NILE_POW_IO_2003)) {
+			if(!(_nstate.PowCnt & NILE_POW_IO_2003)) {
 				break;
 			}
 			_state.SelectedBanks[2] = (_state.SelectedBanks[2] & 0xFF00) | value;
 			break;
 		case IO_BANK_2003_ROM0 + 1:
-			if(!(nile_pow_cnt & NILE_POW_IO_2003)) {
+			if(!(_nstate.PowCnt & NILE_POW_IO_2003)) {
 				break;
 			}
 			_state.SelectedBanks[2] = (_state.SelectedBanks[2] & 0xFF) | (value << 8);
@@ -256,76 +258,76 @@ void WsCartNileswan::WritePort(uint16_t index, uint8_t value)
 			_state.SelectedBanks[3] = (_state.SelectedBanks[3] & 0xFF00) | value;
 			break;
 		case IO_BANK_2003_ROM1:
-			if(!(nile_pow_cnt & NILE_POW_IO_2003)) {
+			if(!(_nstate.PowCnt & NILE_POW_IO_2003)) {
 				break;
 			}
 			_state.SelectedBanks[3] = (_state.SelectedBanks[3] & 0xFF00) | value;
 			break;
 		case IO_BANK_2003_ROM1 + 1:
-			if(!(nile_pow_cnt & NILE_POW_IO_2003)) {
+			if(!(_nstate.PowCnt & NILE_POW_IO_2003)) {
 				break;
 			}
 			_state.SelectedBanks[3] = (_state.SelectedBanks[3] & 0xFF) | (value << 8);
 			break;
 		case IO_NILE_POW_CNT:
-			if(!(nile_pow_cnt & NILE_POW_IO_NILE) && value != NILE_POW_UNLOCK) {
+			if(!(_nstate.PowCnt & NILE_POW_IO_NILE) && value != NILE_POW_UNLOCK) {
 				break;
 			}
 			OnPowCntUpdate(value);
 			break;
 		case IO_NILE_WARMBOOT_CNT:
-			nile_fpga_core = value & 0x3;
-			printf("nileswan/fpga: warmboot to core %d\n", nile_fpga_core);
+			_nstate.FpgaCore = value & 0x3;
+			printf("nileswan/fpga: warmboot to core %d\n", _nstate.FpgaCore);
 			FpgaReset();
 			break;
 		case IO_NILE_SEG_MASK:
-			if(!(nile_pow_cnt & NILE_POW_IO_NILE)) {
+			if(!(_nstate.PowCnt & NILE_POW_IO_NILE)) {
 				break;
 			}
-			nile_bank_mask = (nile_bank_mask & 0xFF00) | value;
+			_nstate.BankMask = (_nstate.BankMask & 0xFF00) | value;
 			break;
 		case IO_NILE_SEG_MASK + 1:
-			if(!(nile_pow_cnt & NILE_POW_IO_NILE)) {
+			if(!(_nstate.PowCnt & NILE_POW_IO_NILE)) {
 				break;
 			}
-			nile_bank_mask = (nile_bank_mask & 0xFF) | (value << 8);
+			_nstate.BankMask = (_nstate.BankMask & 0xFF) | (value << 8);
 			break;
 		case IO_NILE_SPI_CNT: {
-			if(!(nile_pow_cnt & NILE_POW_IO_NILE)) {
+			if(!(_nstate.PowCnt & NILE_POW_IO_NILE)) {
 				break;
 			}
-			uint16_t new_nile_spi_cnt = (nile_spi_cnt & 0xFF00) | value;
-			if(nile_spi_cnt & NILE_SPI_BUSY) {
+			uint16_t new_spi_cnt = (_nstate.SpiCnt & 0xFF00) | value;
+			if(_nstate.SpiCnt & NILE_SPI_BUSY) {
 				printf("nileswan/spi: BUG trying to write to SPI control while transfer active (control %04X => %04X)\n",
-					nile_spi_cnt,
-					new_nile_spi_cnt);
+					_nstate.SpiCnt,
+					new_spi_cnt);
 				break;
 			}
-			nile_spi_cnt = new_nile_spi_cnt;
+			_nstate.SpiCnt = new_spi_cnt;
 		} break;
 		case IO_NILE_SPI_CNT + 1: {
-			if(!(nile_pow_cnt & NILE_POW_IO_NILE)) {
+			if(!(_nstate.PowCnt & NILE_POW_IO_NILE)) {
 				break;
 			}
-			uint16_t new_nile_spi_cnt = (nile_spi_cnt & 0xFF) | (value << 8);
-			if(nile_spi_cnt != new_nile_spi_cnt && (new_nile_spi_cnt | NILE_SPI_BUSY) == nile_spi_cnt) {
+			uint16_t new_spi_cnt = (_nstate.SpiCnt & 0xFF) | (value << 8);
+			if(_nstate.SpiCnt != new_spi_cnt && (new_spi_cnt | NILE_SPI_BUSY) == _nstate.SpiCnt) {
 				printf("nileswan/spi: abort\n");
-			} else if(nile_spi_cnt & NILE_SPI_BUSY) {
+			} else if(_nstate.SpiCnt & NILE_SPI_BUSY) {
 				printf("nileswan/spi: BUG trying to write to SPI control while transfer active (control %04X => %04X)\n",
-					nile_spi_cnt,
-					new_nile_spi_cnt);
+					_nstate.SpiCnt,
+					new_spi_cnt);
 				break;
 			}
-			uint16_t old_spi_cnt = nile_spi_cnt;
-			nile_spi_cnt = new_nile_spi_cnt;
-			printf("nileswan/spi: control = %04X\n", nile_spi_cnt);
+			uint16_t old_spi_cnt = _nstate.SpiCnt;
+			_nstate.SpiCnt = new_spi_cnt;
+			printf("nileswan/spi: control = %04X\n", _nstate.SpiCnt);
 			OnSpiCntUpdate(old_spi_cnt);
 		} break;
 		case IO_NILE_EMU_CNT:
-			if(!(nile_pow_cnt & NILE_POW_IO_NILE)) {
+			if(!(_nstate.PowCnt & NILE_POW_IO_NILE)) {
 				break;
 			}
-			nile_emu_cnt = value & 0x3F;
+			_nstate.EmuCnt = value & 0x3F;
 			break;
 	}
 
@@ -336,18 +338,18 @@ void WsCartNileswan::WritePort(uint16_t index, uint8_t value)
 
 int WsCartNileswan::GetSpiBankIndex(bool is_swan)
 {
-	bool is_back_buffer = (nile_spi_cnt & NILE_SPI_BUFFER_IDX) != 0;
+	bool is_back_buffer = (_nstate.SpiCnt & NILE_SPI_BUFFER_IDX) != 0;
 	is_back_buffer ^= is_swan;
 	return is_back_buffer ? 0 : 1;
 }
 
 uint8_t WsCartNileswan::SpiExchange(uint8_t tx)
 {
-	if((nile_spi_cnt & NILE_SPI_DEV_MASK) == NILE_SPI_DEV_TF) {
+	if((_nstate.SpiCnt & NILE_SPI_DEV_MASK) == NILE_SPI_DEV_TF) {
 		return tf.SpiExchange(tx);
-	} else if((nile_spi_cnt & NILE_SPI_DEV_MASK) == NILE_SPI_DEV_FLASH) {
+	} else if((_nstate.SpiCnt & NILE_SPI_DEV_MASK) == NILE_SPI_DEV_FLASH) {
 		return flash.SpiExchange(tx);
-	} else if((nile_spi_cnt & NILE_SPI_DEV_MASK) == NILE_SPI_DEV_MCU) {
+	} else if((_nstate.SpiCnt & NILE_SPI_DEV_MASK) == NILE_SPI_DEV_MCU) {
 		return mcu.SpiExchange(tx);
 	} else {
 		return 0xFF;
@@ -443,16 +445,16 @@ void WsCartNileswan::ResolveBank(uint32_t address, uint8_t** buffer, bool write,
 	*buffer = NULL;
 
 	if(is_ram) {
-		if(!mask_bit || (nile_bank_mask & mask_bit)) {
-			physical_bank &= (nile_bank_mask >> 12);
+		if(!mask_bit || (_nstate.BankMask & mask_bit)) {
+			physical_bank &= (_nstate.BankMask >> 12);
 		} else {
 			physical_bank &= 0xF;
 		}
 		uint32_t physical_address = (physical_bank << 16) | (address & 0xFFFF);
 
 		if(physical_bank < sram_banks) {
-			if(nile_pow_cnt & NILE_POW_SRAM) {
-				if(nile_emu_cnt & NILE_EMU_SRAM_32KB) {
+			if(_nstate.PowCnt & NILE_POW_SRAM) {
+				if(_nstate.EmuCnt & NILE_EMU_SRAM_32KB) {
 					physical_address &= ~0x8000;
 				}
 				*buffer = buffer_sram + physical_address;
@@ -463,8 +465,8 @@ void WsCartNileswan::ResolveBank(uint32_t address, uint8_t** buffer, bool write,
 			*buffer = buffer_spi_tx[GetSpiBankIndex(true)] + (physical_address & (NILE_SPI_SIZE - 1));
 		}
 	} else {
-		if(!mask_bit || (nile_bank_mask & mask_bit)) {
-			physical_bank &= (nile_bank_mask & 0x1FF);
+		if(!mask_bit || (_nstate.BankMask & mask_bit)) {
+			physical_bank &= (_nstate.BankMask & 0x1FF);
 		} else {
 			physical_bank &= 0x1FF;
 		}
@@ -487,7 +489,7 @@ uint8_t WsCartNileswan::ReadMemory(uint32_t addr)
 	ResolveBank(addr, &buffer, false, false);
 
 	uint8_t cpu_bank = (addr >> 16) & 0xF;
-	if((cpu_bank == 2 || cpu_bank == 3) && (nile_emu_cnt & 0x20)) {
+	if((cpu_bank == 2 || cpu_bank == 3) && (_nstate.EmuCnt & 0x20)) {
 		uint8_t* write_buffer;
 
 		bool old_flash_enable = _state.RomInRamBank;
@@ -498,11 +500,11 @@ uint8_t WsCartNileswan::ReadMemory(uint32_t addr)
 		*write_buffer = *buffer;
 	}
 
-	if((nile_emu_cnt & NILE_EMU_FLASH_FSM) && _state.RomInRamBank && in_sram) {
-		if(nile_ww_state == WW_STATE_FAST) {
+	if((_nstate.EmuCnt & NILE_EMU_FLASH_FSM) && _state.RomInRamBank && in_sram) {
+		if(wwState == WwState::FAST) {
 			return 0x00;
 		}
-		if(nile_ww_state == WW_STATE_ERASE) {
+		if(wwState == WwState::ERASE) {
 			return 0xFF;
 		}
 	}
@@ -519,50 +521,50 @@ void WsCartNileswan::WriteMemory(uint32_t addr, uint8_t value)
 	bool in_sram = (addr & 0xF0000) == 0x10000;
 	ResolveBank(addr, &buffer, true, false);
 
-	if((nile_emu_cnt & NILE_EMU_FLASH_FSM) && _state.RomInRamBank && in_sram) {
-		if(nile_ww_state == WW_STATE_READ) {
+	if((_nstate.EmuCnt & NILE_EMU_FLASH_FSM) && _state.RomInRamBank && in_sram) {
+		if(wwState == WwState::READ) {
 			if(value == 0xAA) {
-				nile_ww_state = WW_STATE_UNLOCK_1;
+				wwState = WwState::UNLOCK_1;
 			} else {
-				nile_ww_state = WW_STATE_READ;
+				wwState = WwState::READ;
 			}
-		} else if(nile_ww_state == WW_STATE_UNLOCK_1) {
+		} else if(wwState == WwState::UNLOCK_1) {
 			if(value == 0x55) {
-				nile_ww_state = WW_STATE_UNLOCK_2;
+				wwState = WwState::UNLOCK_2;
 			} else {
-				nile_ww_state = WW_STATE_READ;
+				wwState = WwState::READ;
 			}
-		} else if(nile_ww_state == WW_STATE_UNLOCK_2) {
+		} else if(wwState == WwState::UNLOCK_2) {
 			if(value == 0x20) {
-				nile_ww_state = WW_STATE_FAST;
+				wwState = WwState::FAST;
 			} else if(value == 0xA0) {
-				nile_ww_state = WW_STATE_WRITE;
+				wwState = WwState::WRITE;
 			} else if(value == 0x10) {
-				nile_ww_state = WW_STATE_ERASE;
+				wwState = WwState::ERASE;
 			} else if(value == 0x30) {
-				nile_ww_state = WW_STATE_ERASE;
+				wwState = WwState::ERASE;
 			} else {
-				nile_ww_state = WW_STATE_READ;
+				wwState = WwState::READ;
 			}
-		} else if(nile_ww_state == WW_STATE_FAST) {
+		} else if(wwState == WwState::FAST) {
 			if(value == 0xA0) {
-				nile_ww_state = WW_STATE_FAST_WRITE;
+				wwState = WwState::FAST_WRITE;
 			} else if(value == 0x90) {
-				nile_ww_state = WW_STATE_READ; /* Reset mode */
+				wwState = WwState::READ; /* Reset mode */
 			} else {
-				nile_ww_state = WW_STATE_FAST;
+				wwState = WwState::FAST;
 			}
-		} else if(nile_ww_state == WW_STATE_FAST_WRITE) {
+		} else if(wwState == WwState::FAST_WRITE) {
 			*buffer = value;
-			nile_ww_state = WW_STATE_FAST;
-		} else if(nile_ww_state == WW_STATE_WRITE) {
+			wwState = WwState::FAST;
+		} else if(wwState == WwState::WRITE) {
 			*buffer = value;
-			nile_ww_state = WW_STATE_READ;
-		} else if(nile_ww_state == WW_STATE_ERASE) {
+			wwState = WwState::READ;
+		} else if(wwState == WwState::ERASE) {
 			if(value == 0xAA) {
-				nile_ww_state = WW_STATE_UNLOCK_1;
+				wwState = WwState::UNLOCK_1;
 			} else {
-				nile_ww_state = WW_STATE_READ;
+				wwState = WwState::READ;
 			}
 		}
 		return;
@@ -577,5 +579,22 @@ void WsCartNileswan::Serialize(Serializer& s)
 {
 	WsCart::Serialize(s);
 
-	// TODO
+	SV(_nstate.PowCnt);
+	SV(_nstate.EmuCnt);
+	SV(_nstate.SpiCnt);
+	SV(_nstate.BankMask);
+	SV(_nstate.FpgaCore);
+	SV(wwState);
+
+	SVArray(buffer_psram, psram_banks * 0x10000);
+	SVArray(buffer_sram, sram_banks * 0x10000);
+	SVArray(buffer_ipc, NILE_IPC_SIZE);
+	SVArray(buffer_spi_tx[0], NILE_SPI_SIZE);
+	SVArray(buffer_spi_tx[1], NILE_SPI_SIZE);
+	SVArray(buffer_spi_rx[0], NILE_SPI_SIZE);
+	SVArray(buffer_spi_rx[1], NILE_SPI_SIZE);
+
+	SV(flash);
+	SV(mcu);
+	SV(tf);
 }

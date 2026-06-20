@@ -387,15 +387,60 @@ public class WsRegisterViewer
 			});
 		}
 
-		if(cart.HasRtc) {
-			entries.AddRange(new List<RegEntry>() {
-				new RegEntry("", "Cart RTC"),
-				new RegEntry("$CA.0-3", "Command", ws.CartRtc.Command, Format.X8),
-				new RegEntry("$CA.4", "Busy", ws.CartRtc.Busy),
-				new RegEntry("$CA.7", "Ready", ws.CartRtc.Ready),
-				new RegEntry("$CB", "Data", ws.CartRtc.Data)
-			});
-		}
+        if(cart.HasRtc) {
+            entries.AddRange(new List<RegEntry>() {
+                new RegEntry("", "Cart RTC"),
+                new RegEntry("$CA.0-3", "Command", ws.CartRtc.Command, Format.X8),
+                new RegEntry("$CA.4", "Busy", ws.CartRtc.Busy),
+                new RegEntry("$CA.7", "Ready", ws.CartRtc.Ready),
+                new RegEntry("$CB", "Data", ws.CartRtc.Data)
+            });
+        }
+
+        if(ws.IsNileswan) {
+      		WsNileCartState nileCart = ws.CartNile;
+            
+    		entries.AddRange(new List<RegEntry>() {
+                new RegEntry("", "nileswan SPI"),
+    			new RegEntry("$E0/E1.0-8", "SPI Transfer Length - 1", nileCart.SpiCnt & 0x1FF, Format.X16),
+    			new RegEntry("$E1.1-2", "SPI Transfer Mode", ((nileCart.SpiCnt >> 9) & 0x03) switch {
+    				0 => "Write", 1 => "Read", 2 => "Exchange", 3 or _ => "Wait and Read"
+    			}, (nileCart.SpiCnt >> 9) & 0x03),
+    			new RegEntry("$E1.3", "SPI Transfer Clock", ((nileCart.SpiCnt >> 11) & 0x01) switch {
+    				0 => "Fast", 1 or _ => "Cart"
+    			}, (nileCart.SpiCnt >> 11) & 0x01),
+    			new RegEntry("$E1.4-5", "SPI Transfer Device", ((nileCart.SpiCnt >> 12) & 0x03) switch {
+    				0 => "None", 1 => "TF", 2 => "Flash", 3 or _ => "MCU"
+    			}, (nileCart.SpiCnt >> 12) & 0x03),
+    			new RegEntry("$E1.6", "SPI Buffer Flip", ((nileCart.SpiCnt >> 14) & 0x01) != 0),
+    			new RegEntry("$E1.7", "SPI Transfer Active", ((nileCart.SpiCnt >> 15) & 0x01) != 0),
+                new RegEntry("", "nileswan Power"),
+     			new RegEntry("$E2.0", "24 MHz Clock Enabled", ((nileCart.PowCnt >> 0) & 0x01) != 0),
+     			new RegEntry("$E2.1", "TF Card Power Enabled", ((nileCart.PowCnt >> 1) & 0x01) != 0),
+     			new RegEntry("$E2.2", "Nile I/O Enabled", ((nileCart.PowCnt >> 2) & 0x01) != 0),
+     			new RegEntry("$E2.3", "2001 I/O Enabled", ((nileCart.PowCnt >> 3) & 0x01) != 0),
+     			new RegEntry("$E2.4", "2003 I/O Enabled", ((nileCart.PowCnt >> 4) & 0x01) != 0),
+     			new RegEntry("$E2.5", "MCU Boot0/Busy Pull-Up Enabled", ((nileCart.PowCnt >> 5) & 0x01) != 0),
+     			new RegEntry("$E2.6", "SRAM Enabled", ((nileCart.PowCnt >> 6) & 0x01) != 0),
+     			new RegEntry("$E2.7", "MCU Reset", ((nileCart.PowCnt >> 7) & 0x01) != 0),
+     			new RegEntry("$E3.0-1", "Emulated EEPROM Size", ((nileCart.EmuCnt >> 0) & 0x03) switch {
+     				0 => "128 B", 1 => "1 KB", 2 => "2 KB", 3 or _ => "None"
+     			}, (nileCart.EmuCnt >> 0) & 0x03),
+     			new RegEntry("$E3.2", "Flash Emulation Enabled", ((nileCart.EmuCnt >> 2) & 0x01) != 0),
+     			new RegEntry("$E3.3", "Emulated ROM Bus Width", ((nileCart.EmuCnt >> 3) & 0x01) switch {
+     				0 => "Fast", 1 or _ => "Cart"
+     			}, (nileCart.EmuCnt >> 3) & 0x01),
+     			new RegEntry("$E3.4", "SRAM 32 KB Mirroring Enabled", ((nileCart.EmuCnt >> 4) & 0x01) != 0),
+                new RegEntry("", "nileswan Bank Layout"),
+     			new RegEntry("$E4/E5.0-8", "ROM Bank Mask", nileCart.BankMask & 0x1FF, Format.X16),
+     			new RegEntry("$E5.1", "ROM0 Mask Enabled", ((nileCart.BankMask >> 9) & 0x01) != 0),
+     			new RegEntry("$E5.2", "ROM1 Mask Enabled", ((nileCart.BankMask >> 10) & 0x01) != 0),
+     			new RegEntry("$E5.3", "RAM Mask Enabled", ((nileCart.BankMask >> 11) & 0x01) != 0),
+     			new RegEntry("$E5.4-7", "RAM Bank Mask", (nileCart.BankMask >> 12) & 0xF, Format.X8),
+                new RegEntry("", "nileswan FPGA"),
+     			new RegEntry("$E6", "Active FPGA Core", nileCart.FpgaCore == -1 ? "Factory" : System.Convert.ToString(nileCart.FpgaCore), null),
+      		});
+        }
 
 		return new RegisterViewerTab("Cart", entries, CpuType.Ws, MemoryType.WsPort);
 	}

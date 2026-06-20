@@ -450,10 +450,19 @@ public struct WsCartState
 
 public struct WsRtcState
 {
-	public byte Data;
-	public byte Command;
-	[MarshalAs(UnmanagedType.I1)] public bool Ready;
-	[MarshalAs(UnmanagedType.I1)] public bool Busy;
+    public byte Data;
+    public byte Command;
+    [MarshalAs(UnmanagedType.I1)] public bool Ready;
+    [MarshalAs(UnmanagedType.I1)] public bool Busy;
+}
+
+public struct WsNileCartState
+{
+    public byte PowCnt;
+    public byte EmuCnt;
+    public UInt16 SpiCnt;
+    public UInt16 BankMask;
+    public sbyte FpgaCore;
 }
 
 public struct WsState : BaseState
@@ -467,8 +476,10 @@ public struct WsState : BaseState
 	public WsTimerState Timer;
 	public WsSerialState Serial;
 	public WsEepromState InternalEeprom;
-	public WsCartState Cart;
+    public WsCartState Cart;
 	public WsEepromState CartEeprom;
 	public WsRtcState CartRtc;
+	public WsNileCartState CartNile;
 	public WsModel Model;
+	[MarshalAs(UnmanagedType.I1)] public bool IsNileswan;
 }
