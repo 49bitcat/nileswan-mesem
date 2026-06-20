@@ -234,6 +234,11 @@ uint8_t NileMCU::SpiExchange(uint8_t tx) {
                     response[i] = i;
                 SendSpiResponse(12, response);
             } break;
+            case MCU_SPI_CMD_MODE: {
+            	printf("nileswan/spi/mcu: set mode to %d (no-op)\n", arg);
+             	rxBuf.Pop(NULL, 2);
+              	// no response!
+            } break;
             case MCU_SPI_CMD_VERSION: {
                 printf("nileswan/spi/mcu: query MCU firmware version\n");
                 rxBuf.Pop(NULL, 2);
@@ -242,6 +247,17 @@ uint8_t NileMCU::SpiExchange(uint8_t tx) {
                 response[2] = NILE_EMULATED_MCU_MINOR;
                 response[3] = NILE_EMULATED_MCU_MINOR >> 8;
                 SendSpiResponse(4, response);
+            } break;
+            case MCU_SPI_CMD_INFO: {
+                printf("nileswan/spi/mcu: query MCU status\n");
+                rxBuf.Pop(NULL, 2);
+                response[0] = 0x01;
+                response[1] = 0;
+                response[2] = 0x1F;
+                response[3] = 0;
+                response[4] = 3725 & 0xFF;
+                response[5] = 3725 >> 8;
+                SendSpiResponse(6, response);
             } break;
             case MCU_SPI_CMD_EEPROM_MODE: {
                 printf("nileswan/spi/mcu: set EEPROM mode to %d\n", arg);
