@@ -468,6 +468,15 @@ struct WsRtcState
 	bool Busy;
 };
 
+struct WsNileCartState
+{
+    uint8_t PowCnt;
+    uint8_t EmuCnt;
+    uint16_t SpiCnt;
+    uint16_t BankMask;
+    int8_t FpgaCore;
+};
+
 struct WsState
 {
 	WsCpuState Cpu;
@@ -482,6 +491,7 @@ struct WsState
 	WsCartState Cart;
 	WsEepromState CartEeprom;
 	WsRtcState CartRtc;
+	WsNileCartState CartNile;
 	WsModel Model;
 };
 
