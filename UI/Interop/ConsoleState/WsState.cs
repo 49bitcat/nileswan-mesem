@@ -463,6 +463,8 @@ public struct WsNileCartState
     public UInt16 SpiCnt;
     public UInt16 BankMask;
     public sbyte FpgaCore;
+    public byte IrqStatus;
+    public byte IrqEnable;
 }
 
 public struct WsState : BaseState
