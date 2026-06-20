@@ -50,6 +50,7 @@ protected:
 	uint8_t* ResolveBank(uint32_t address, bool write, bool isDebugger);
 	uint16_t ResolveBankValue(int cpuBank) const;
 	int GetSpiBankIndex(bool consoleSide) const;
+	void RefreshMappingsRange(int start, int end);
 
 public:
 	uint8_t* buffer_psram = nullptr;
@@ -70,7 +71,6 @@ public:
 	void FpgaReset();
 	bool IsTFPowered() const;
 	void RefreshMappings() override;
-	void RefreshMappingsAndBuffers();
 
 	uint32_t GetMaskedPsramSize() const;
 	uint32_t GetMaskedSramSize() const;

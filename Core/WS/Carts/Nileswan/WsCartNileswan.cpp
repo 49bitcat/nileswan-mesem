@@ -223,7 +223,8 @@ uint8_t WsCartNileswan::ReadPort(uint16_t index)
 	}
 
 	// TODO what is the open bus value?
-	return 0xFF;
+	// return 0xFF;
+	return 0x00;
 }
 
 void WsCartNileswan::WritePort(uint16_t index, uint8_t value)
@@ -231,19 +232,19 @@ void WsCartNileswan::WritePort(uint16_t index, uint8_t value)
 	switch(index) {
 		case IO_BANK_ROM_LINEAR:
 			_state.SelectedBanks[0] = value;
-			RefreshMappings();
+			RefreshMappingsRange(4, 15);
 			break;
 		case IO_BANK_RAM:
 			_state.SelectedBanks[1] = (_state.SelectedBanks[1] & 0xFF00) | value;
-			RefreshMappings();
+			RefreshMappingsRange(1, 1);
 			break;
 		case IO_BANK_ROM0:
 			_state.SelectedBanks[2] = (_state.SelectedBanks[2] & 0xFF00) | value;
-			RefreshMappings();
+			RefreshMappingsRange(2, 2);
 			break;
 		case IO_BANK_ROM1:
 			_state.SelectedBanks[3] = (_state.SelectedBanks[3] & 0xFF00) | value;
-			RefreshMappings();
+			RefreshMappingsRange(3, 3);
 			break;
 		case IO_NILE_POW_CNT:
 			if(!(_nstate.PowCnt & NILE_POW_IO_NILE) && value != NILE_POW_UNLOCK) {
@@ -252,8 +253,8 @@ void WsCartNileswan::WritePort(uint16_t index, uint8_t value)
 			bool refreshMappingsRequired = ((_nstate.PowCnt ^ value) & NILE_POW_SRAM) != 0;
 			OnPowCntUpdate(value);
 			if(refreshMappingsRequired) {
-			    RefreshMappings();
-	        }
+			    RefreshMappingsRange(1, 1);
+			}
 			break;
 	}
 
@@ -265,35 +266,35 @@ void WsCartNileswan::WritePort(uint16_t index, uint8_t value)
 				break;
 			case IO_CART_FLASH:
 				_state.RomInRamBank = value & 0x01;
-				RefreshMappings();
+				RefreshMappingsRange(1, 1);
 				break;
 			case IO_BANK_2003_ROM_LINEAR:
 				_state.SelectedBanks[0] = value;
-				RefreshMappings();
+				RefreshMappingsRange(4, 15);
 				break;
 			case IO_BANK_2003_RAM:
 				_state.SelectedBanks[1] = (_state.SelectedBanks[1] & 0xFF00) | value;
-				RefreshMappings();
+				RefreshMappingsRange(1, 1);
 				break;
 			case IO_BANK_2003_RAM + 1:
 				_state.SelectedBanks[1] = (_state.SelectedBanks[1] & 0xFF) | (value << 8);
-				RefreshMappings();
+				RefreshMappingsRange(1, 1);
 				break;
 			case IO_BANK_2003_ROM0:
 				_state.SelectedBanks[2] = (_state.SelectedBanks[2] & 0xFF00) | value;
-				RefreshMappings();
+				RefreshMappingsRange(2, 2);
 				break;
 			case IO_BANK_2003_ROM0 + 1:
 				_state.SelectedBanks[2] = (_state.SelectedBanks[2] & 0xFF) | (value << 8);
-				RefreshMappings();
+				RefreshMappingsRange(2, 2);
 				break;
 			case IO_BANK_2003_ROM1:
 				_state.SelectedBanks[3] = (_state.SelectedBanks[3] & 0xFF00) | value;
-				RefreshMappings();
+				RefreshMappingsRange(3, 3);
 				break;
 			case IO_BANK_2003_ROM1 + 1:
 				_state.SelectedBanks[3] = (_state.SelectedBanks[3] & 0xFF) | (value << 8);
-				RefreshMappings();
+				RefreshMappingsRange(3, 3);
 				break;
 		}
 	}
@@ -304,7 +305,7 @@ void WsCartNileswan::WritePort(uint16_t index, uint8_t value)
 				_nstate.FpgaCore = value & 0x3;
 				printf("nileswan/fpga: warmboot to core %d\n", _nstate.FpgaCore);
 				FpgaReset();
-				RefreshMappingsAndBuffers();
+				RefreshMappings();
 				break;
 			case IO_NILE_SEG_MASK:
 				_nstate.BankMask = (_nstate.BankMask & 0xFF00) | value;
@@ -342,11 +343,11 @@ void WsCartNileswan::WritePort(uint16_t index, uint8_t value)
 				printf("nileswan/spi: control = %04X\n", _nstate.SpiCnt);
 				OnSpiCntUpdate(oldSpiCnt);
 				if((oldSpiCnt ^ newSpiCnt) & NILE_SPI_BUFFER_IDX) {
-					RefreshMappingsAndBuffers();
+					RefreshMappings();
 				}
 			} break;
 			case IO_NILE_EMU_CNT:
-			    _nstate.EmuCnt = value & 0x3F;
+				_nstate.EmuCnt = value & 0x3F;
 				RefreshMappings();
 				break;
 		}
@@ -402,33 +403,28 @@ AddressInfo WsCartNileswan::GetAbsoluteAddress(uint32_t relAddr)
 	return { -1, MemoryType::None };
 }
 
+void WsCartNileswan::RefreshMappingsRange(int start, int end)
+{
+    bool readsNeedCode = (_nstate.EmuCnt & (NILE_EMU_FLASH_FSM | NILE_EMU_LODSW_TRICK)) != 0;
+	bool writesNeedCode = (_nstate.EmuCnt & NILE_EMU_FLASH_FSM) != 0;
+	for(int i = start; i <= end; i++) {
+		AddressInfo info = GetAbsoluteAddress(i << 16);
+		Map(i << 16, (i << 16) + 0xFFFF, info.Type, info.Address, i > 1);
+	}
+   
+	_memoryManager->SetCartFlash((WsRegisterAccess)((readsNeedCode ? (int)WsRegisterAccess::Read : 0) | (writesNeedCode ? (int)WsRegisterAccess::Write : 0)));
+}
+
 void WsCartNileswan::RefreshMappings()
 {
-	// TODO Move to RefreshMappingsAndBuffers (must be called during Init)
-	if(_emu == NULL) {
+	if(_emu == NULL || _memoryManager == NULL) {
 		return;
 	}
 
 	_emu->RegisterMemory(MemoryType::WsNileSpiTx, buffer_spi_tx[GetSpiBankIndex(true)], NILE_SPI_SIZE);
 	_emu->RegisterMemory(MemoryType::WsNileSpiRx, buffer_spi_rx[GetSpiBankIndex(true)], NILE_SPI_SIZE);
 
-	if(_memoryManager == NULL) {
-		return;
-	}
-
-	bool readsNeedCode = (_nstate.EmuCnt & (NILE_EMU_FLASH_FSM | NILE_EMU_LODSW_TRICK)) != 0;
-	bool writesNeedCode = (_nstate.EmuCnt & NILE_EMU_FLASH_FSM) != 0;
-	for(int i = 1; i < 16; i++) {
-		AddressInfo info = GetAbsoluteAddress(i << 16);
-		Map(i << 16, (i << 16) + 0xFFFF, info.Type, info.Address, i > 1);
-	}
-
-	_memoryManager->SetCartFlash((WsRegisterAccess)((readsNeedCode ? (int)WsRegisterAccess::Read : 0) | (writesNeedCode ? (int)WsRegisterAccess::Write : 0)));
-}
-
-void WsCartNileswan::RefreshMappingsAndBuffers()
-{
-	RefreshMappings();
+	RefreshMappingsRange(1, 15);
 }
 
 uint16_t WsCartNileswan::ResolveBankValue(int cpuBank) const
@@ -488,15 +484,6 @@ uint8_t WsCartNileswan::ReadMemory(uint32_t addr)
 	uint8_t* buffer = ResolveBank(addr, false, false);
 
 	uint8_t cpuBank = (addr >> 16) & 0xF;
-	if((_nstate.EmuCnt & NILE_EMU_LODSW_TRICK) && (cpuBank == 2 || cpuBank == 3)) {
-		bool oldFlashEnable = _state.RomInRamBank;
-		_state.RomInRamBank = true;
-		uint8_t* writeBuffer = ResolveBank((addr & 0xFFFF) | 0x10000, false, false);
-		_state.RomInRamBank = oldFlashEnable;
-
-		*writeBuffer = *buffer;
-	}
-
 	if((_nstate.EmuCnt & NILE_EMU_FLASH_FSM) && _state.RomInRamBank && inSram) {
 		if(wwState == WwState::FAST) {
 			return 0x00;
@@ -505,7 +492,21 @@ uint8_t WsCartNileswan::ReadMemory(uint32_t addr)
 			return 0xFF;
 		}
 	}
+	
 	if(buffer != NULL) {
+    	if((_nstate.EmuCnt & NILE_EMU_LODSW_TRICK) && (cpuBank == 2 || cpuBank == 3)) {
+    		bool oldFlashEnable = _state.RomInRamBank;
+    		_state.RomInRamBank = true;
+    		uint8_t* writeBuffer = ResolveBank((addr & 0xFFFF) | 0x10000, false, false);
+    		_state.RomInRamBank = oldFlashEnable;
+    
+    		if(writeBuffer) {
+    		    *writeBuffer = *buffer;		
+    		} else {
+                printf("nileswan: BUG unmapped memory during LODSW trick at %05X\n", addr);
+            }
+    	}
+
 		return *buffer;
 	} else {
 		return 0xFF;
@@ -551,10 +552,14 @@ void WsCartNileswan::WriteMemory(uint32_t addr, uint8_t value)
 				wwState = WwState::FAST;
 			}
 		} else if(wwState == WwState::FAST_WRITE) {
-			*buffer = value;
+		    if(buffer != NULL) {
+    			*buffer = value;
+    		}
 			wwState = WwState::FAST;
 		} else if(wwState == WwState::WRITE) {
-			*buffer = value;
+    		if(buffer != NULL) {
+    			*buffer = value;
+    		}
 			wwState = WwState::READ;
 		} else if(wwState == WwState::ERASE) {
 			if(value == 0xAA) {
