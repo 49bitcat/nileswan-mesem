@@ -200,6 +200,7 @@ namespace Mesen.Interop
 		[DllImport(DllPath)] public static extern CpuInstructionProgress GetInstructionProgress(CpuType type);
 
 		[DllImport(DllPath)] public static extern Int32 GetMemorySize(MemoryType type);
+		[DllImport(DllPath)] public static extern Int32 GetVirtualMemorySize(MemoryType type);
 		[DllImport(DllPath)] public static extern Byte GetMemoryValue(MemoryType type, UInt32 address);
 		[DllImport(DllPath)] public static extern void SetMemoryValue(MemoryType type, UInt32 address, byte value);
 		[DllImport(DllPath)] public static extern void SetMemoryValues(MemoryType type, UInt32 address, [In] byte[] data, Int32 length);

@@ -56,7 +56,7 @@ public:
 	MemoryDumper(Debugger* debugger);
 
 	uint8_t* GetMemoryBuffer(MemoryType type);
-	uint32_t GetMemorySize(MemoryType type);
+	uint32_t GetMemorySize(MemoryType type, bool virtualMemory = false);
 	void GetMemoryState(MemoryType type, uint8_t* buffer);
 
 	uint8_t GetMemoryValue(MemoryType memoryType, uint32_t address, bool disableSideEffects = true);

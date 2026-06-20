@@ -556,6 +556,23 @@ void WsConsole::GetConsoleState(BaseState& state, ConsoleType consoleType)
 	(WsState&)state = GetState();
 }
 
+uint32_t WsConsole::GetVirtualMemorySize(MemoryType memoryType)
+{
+    if(memoryType == MemoryType::WsPrgRom) {
+        if(WsCartNileswan* nileCart = dynamic_cast<WsCartNileswan*>(_cart.get())) {
+            return nileCart->GetMaskedPsramSize();
+        }
+    }
+    
+    if(memoryType == MemoryType::WsCartRam) {
+        if(WsCartNileswan* nileCart = dynamic_cast<WsCartNileswan*>(_cart.get())) {
+            return nileCart->GetMaskedSramSize();
+        }
+    }
+
+    return 0;
+}
+
 static WsModel GetModelForCompatibilityCheck(WsModel model)
 {
 	if(model == WsModel::SwanCrystal) {

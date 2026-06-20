@@ -1,4 +1,5 @@
 #pragma once
+#include "Shared/MemoryType.h"
 #include "pch.h"
 #include "Shared/Interfaces/IConsole.h"
 #include "WS/WsTypes.h"
@@ -106,6 +107,7 @@ public:
 
 	WsState GetState();
 	void GetConsoleState(BaseState& state, ConsoleType consoleType) override;
+	uint32_t GetVirtualMemorySize(MemoryType memoryType) override;
 
 	WsCpu* GetCpu() { return _cpu.get(); }
 	WsPpu* GetPpu() { return _ppu.get(); }
