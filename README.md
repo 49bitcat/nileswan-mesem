@@ -1,8 +1,8 @@
-# Mesen Community Edition
+# nileswan-mesem
 
 Mesen is a multi-system emulator for Windows, Linux, and macOS. It supports NES, SNES, Game Boy (GB/SGB/GBC), Game Boy Advance, PC Engine, SMS/Game Gear, and WonderSwan (WS/WSC).
 
-MesenCE is a community-managed fork based on Mesen2, created to maintain and expand this emulator into the future.
+nileswan-mesem is a fork of [MesenCE](https://github.com/nesdev-org/MesenCE) which adds [nileswan](https://49bitcat.com/docs/nileswan) flash cartridge emulation.
 
 ## Releases
 
