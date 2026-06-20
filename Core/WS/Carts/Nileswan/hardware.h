@@ -79,6 +79,7 @@
 #define NILE_EMU_ROM_BUS_16BIT 0x00
 #define NILE_EMU_ROM_BUS_8BIT  0x08
 #define NILE_EMU_SRAM_32KB     0x10
+#define NILE_EMU_LODSW_TRICK   0x20
 
 #define IO_NILE_EMU_CNT      0xE3
 

@@ -229,21 +229,26 @@ void WsCartNileswan::WritePort(uint16_t index, uint8_t value)
 	switch(index) {
 		case IO_BANK_ROM_LINEAR:
 			_state.SelectedBanks[0] = value;
+			RefreshMappings();
 			break;
 		case IO_BANK_RAM:
 			_state.SelectedBanks[1] = (_state.SelectedBanks[1] & 0xFF00) | value;
+			RefreshMappings();
 			break;
 		case IO_BANK_ROM0:
 			_state.SelectedBanks[2] = (_state.SelectedBanks[2] & 0xFF00) | value;
+			RefreshMappings();
 			break;
 		case IO_BANK_ROM1:
 			_state.SelectedBanks[3] = (_state.SelectedBanks[3] & 0xFF00) | value;
+			RefreshMappings();
 			break;
 		case IO_NILE_POW_CNT:
 			if(!(_nstate.PowCnt & NILE_POW_IO_NILE) && value != NILE_POW_UNLOCK) {
 				break;
 			}
 			OnPowCntUpdate(value);
+			RefreshMappings();
 			break;
 	}
 
@@ -255,27 +260,35 @@ void WsCartNileswan::WritePort(uint16_t index, uint8_t value)
 				break;
 			case IO_CART_FLASH:
 				_state.RomInRamBank = value & 0x01;
+				RefreshMappings();
 				break;
 			case IO_BANK_2003_ROM_LINEAR:
 				_state.SelectedBanks[0] = value;
+				RefreshMappings();
 				break;
 			case IO_BANK_2003_RAM:
 				_state.SelectedBanks[1] = (_state.SelectedBanks[1] & 0xFF00) | value;
+				RefreshMappings();
 				break;
 			case IO_BANK_2003_RAM + 1:
 				_state.SelectedBanks[1] = (_state.SelectedBanks[1] & 0xFF) | (value << 8);
+				RefreshMappings();
 				break;
 			case IO_BANK_2003_ROM0:
 				_state.SelectedBanks[2] = (_state.SelectedBanks[2] & 0xFF00) | value;
+				RefreshMappings();
 				break;
 			case IO_BANK_2003_ROM0 + 1:
 				_state.SelectedBanks[2] = (_state.SelectedBanks[2] & 0xFF) | (value << 8);
+				RefreshMappings();
 				break;
 			case IO_BANK_2003_ROM1:
 				_state.SelectedBanks[3] = (_state.SelectedBanks[3] & 0xFF00) | value;
+				RefreshMappings();
 				break;
 			case IO_BANK_2003_ROM1 + 1:
 				_state.SelectedBanks[3] = (_state.SelectedBanks[3] & 0xFF) | (value << 8);
+				RefreshMappings();
 				break;
 		}
 	}
@@ -286,12 +299,15 @@ void WsCartNileswan::WritePort(uint16_t index, uint8_t value)
 				_nstate.FpgaCore = value & 0x3;
 				printf("nileswan/fpga: warmboot to core %d\n", _nstate.FpgaCore);
 				FpgaReset();
+				RefreshMappings();
 				break;
 			case IO_NILE_SEG_MASK:
 				_nstate.BankMask = (_nstate.BankMask & 0xFF00) | value;
+				RefreshMappings();
 				break;
 			case IO_NILE_SEG_MASK + 1:
 				_nstate.BankMask = (_nstate.BankMask & 0xFF) | (value << 8);
+				RefreshMappings();
 				break;
 			case IO_NILE_IRQ_ENABLE:
 				_nstate.IrqEnable = value & 0x03;
@@ -320,14 +336,14 @@ void WsCartNileswan::WritePort(uint16_t index, uint8_t value)
 				_nstate.SpiCnt = new_spi_cnt;
 				printf("nileswan/spi: control = %04X\n", _nstate.SpiCnt);
 				OnSpiCntUpdate(old_spi_cnt);
+				RefreshMappings();
 			} break;
 			case IO_NILE_EMU_CNT:
 				_nstate.EmuCnt = value & 0x3F;
+				RefreshMappings();
 				break;
 		}
 	}
-
-	RefreshMappings();
 }
 
 // SPI routing
@@ -377,12 +393,14 @@ AddressInfo WsCartNileswan::GetAbsoluteAddress(uint32_t relAddr)
 
 void WsCartNileswan::RefreshMappings()
 {
+    bool readsNeedCode = (_nstate.EmuCnt & (NILE_EMU_FLASH_FSM | NILE_EMU_LODSW_TRICK)) != 0;
 	for(int i = 1; i < 16; i++) {
 		AddressInfo info = GetAbsoluteAddress(i << 16);
-		Map(i << 16, (i << 16) + 0xFFFF, info.Type, info.Address, i > 1);
+		Map(i << 16, (i << 16) + 0xFFFF, info.Type, info.Address, 1);
+		readsNeedCode |= info.Type == MemoryType::WsNileIpc || info.Type == MemoryType::None;
 	}
 
-	_memoryManager->SetCartFlash(WsRegisterAccess::ReadWrite);
+	_memoryManager->SetCartFlash(readsNeedCode ? WsRegisterAccess::ReadWrite : WsRegisterAccess::Write);
 }
 
 uint16_t WsCartNileswan::ResolveBankValue(int cpu_bank) const
@@ -445,7 +463,7 @@ uint8_t WsCartNileswan::ReadMemory(uint32_t addr)
 	uint8_t* buffer = ResolveBank(addr, false, false);
 
 	uint8_t cpu_bank = (addr >> 16) & 0xF;
-	if((cpu_bank == 2 || cpu_bank == 3) && (_nstate.EmuCnt & 0x20)) {
+	if((_nstate.EmuCnt & NILE_EMU_LODSW_TRICK) && (cpu_bank == 2 || cpu_bank == 3)) {
 		bool old_flash_enable = _state.RomInRamBank;
 		_state.RomInRamBank = true;
 		uint8_t* write_buffer = ResolveBank((addr & 0xFFFF) | 0x10000, false, false);
