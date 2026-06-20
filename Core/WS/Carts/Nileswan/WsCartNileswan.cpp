@@ -61,6 +61,16 @@ bool WsCartNileswan::IsTFPowered() const
 	return _nstate.PowCnt & NILE_POW_TF;
 }
 
+uint32_t WsCartNileswan::GetMaskedPsramSize() const
+{
+    return ((_nstate.BankMask & (psram_banks - 1)) + 1) << 16;
+}
+
+uint32_t WsCartNileswan::GetMaskedSramSize() const
+{
+    return (((_nstate.BankMask >> 12) & (sram_banks - 1)) + 1) << 16;    
+}
+
 // I/O handling
 
 void WsCartNileswan::OnSpiCntUpdate(uint16_t prev_spi_cnt)

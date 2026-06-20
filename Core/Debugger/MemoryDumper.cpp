@@ -1,3 +1,4 @@
+#include "Shared/MemoryType.h"
 #include "pch.h"
 #include "Debugger/Debugger.h"
 #include "Shared/Emulator.h"
@@ -83,7 +84,7 @@ uint8_t* MemoryDumper::GetMemoryBuffer(MemoryType type)
 	return (uint8_t*)_emu->GetMemory(type).Memory;
 }
 
-uint32_t MemoryDumper::GetMemorySize(MemoryType type)
+uint32_t MemoryDumper::GetMemorySize(MemoryType type, bool virtualSize)
 {
 	if(!_isMemorySupported[(int)type]) {
 		return 0;
@@ -107,7 +108,7 @@ uint32_t MemoryDumper::GetMemorySize(MemoryType type)
 		case MemoryType::SnesRegister: return 0x10000;
 		case MemoryType::SmsPort: return 0x100;
 		case MemoryType::WsPort: return 0x10000;
-		default: return _emu->GetMemory(type).Size;
+		default: return virtualSize ? _emu->GetVirtualMemorySize(type) : _emu->GetMemory(type).Size;
 	}
 }
 

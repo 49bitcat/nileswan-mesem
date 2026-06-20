@@ -1,4 +1,5 @@
 #pragma once
+#include "Shared/MemoryType.h"
 #include "pch.h"
 #include "Core/Debugger/DebugTypes.h"
 #include "Core/Debugger/Debugger.h"
@@ -242,6 +243,7 @@ public:
 
 	void RegisterMemory(MemoryType type, void* memory, uint32_t size);
 	ConsoleMemoryInfo GetMemory(MemoryType type);
+	uint32_t GetVirtualMemorySize(MemoryType type);
 
 	AudioTrackInfo GetAudioTrackInfo();
 	void ProcessAudioPlayerAction(AudioPlayerActionParams p);

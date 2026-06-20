@@ -244,6 +244,11 @@ extern "C"
 		return WithDebugger(uint32_t, GetMemoryDumper()->GetMemorySize(type));
 	}
 
+	DllExport uint32_t __stdcall GetVirtualMemorySize(MemoryType type)
+	{
+		return WithDebugger(uint32_t, GetMemoryDumper()->GetMemorySize(type, true));
+	}
+
 	DllExport void __stdcall GetMemoryState(MemoryType type, uint8_t* buffer)
 	{
 		WithDebugger(void, GetMemoryDumper()->GetMemoryState(type, buffer));

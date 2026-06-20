@@ -1,4 +1,5 @@
 #pragma once
+#include "Shared/MemoryType.h"
 #include "pch.h"
 #include "Utilities/ISerializable.h"
 #include "Core/Debugger/DebugTypes.h"
@@ -99,6 +100,7 @@ public:
 	virtual AudioTrackInfo GetAudioTrackInfo() = 0;
 	virtual void ProcessAudioPlayerAction(AudioPlayerActionParams p) = 0;
 
+	virtual uint32_t GetVirtualMemorySize(MemoryType type) { return 0; }
 	virtual AddressInfo GetAbsoluteAddress(AddressInfo& relAddress) = 0;
 	virtual AddressInfo GetRelativeAddress(AddressInfo& absAddress, CpuType cpuType) = 0;
 	virtual void GetConsoleState(BaseState& state, ConsoleType consoleType) = 0;
@@ -109,4 +111,3 @@ public:
 
 	virtual void ProcessNotification(ConsoleNotificationType type, void* parameter) {}
 };
-

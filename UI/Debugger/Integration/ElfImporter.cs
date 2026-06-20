@@ -36,7 +36,7 @@ public abstract class ElfImporter
 			Dictionary<AddressInfo, CodeLabel> labels = new();
 			HashSet<string> usedLabels = new();
 			IELF elf = ELFReader.Load(path);
-			int romSize = DebugApi.GetMemorySize(cpuType.GetPrgRomMemoryType());
+			int romSize = DebugApi.GetVirtualMemorySize(cpuType.GetPrgRomMemoryType());
 
 			if(elf.TryGetSection(".symtab", out ISection section)) {
 				if(section is ISymbolTable symbols) {
