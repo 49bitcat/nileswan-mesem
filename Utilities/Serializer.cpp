@@ -85,8 +85,8 @@ bool Serializer::LoadFrom(istream& file)
 		uint32_t compressedSize;
 		file.read((char*)&compressedSize, sizeof(compressedSize));
 
-		if(decompressedSize >= 1024 * 1024 * 10 || compressedSize >= 1024 * 1024 * 10) {
-			//Limit to 10mb the data's size
+		if(decompressedSize >= 1024 * 1024 * 32 || compressedSize >= 1024 * 1024 * 32) {
+			//Limit to 32mb the data's size
 			return false;
 		}
 
