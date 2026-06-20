@@ -444,8 +444,15 @@ public class WsRegisterViewer
 				new RegEntry("$E5.4-7", "RAM Bank Mask", (nileCart.BankMask >> 12) & 0xF, Format.X8),
 					 new RegEntry("", "nileswan FPGA"),
 				new RegEntry("$E6", "Active FPGA Core", nileCart.FpgaCore == -1 ? "Factory" : System.Convert.ToString(nileCart.FpgaCore), null),
+				new RegEntry("", "nileswan IRQ"),
+				new RegEntry("$E8", "Enabled IRQs"),
+				new RegEntry("$E8.0", "MCU IRQ", ((nileCart.IrqEnable >> 0) & 0x01) != 0),
+				new RegEntry("$E8.1", "Onboard Button", ((nileCart.IrqEnable >> 1) & 0x01) != 0),
+				new RegEntry("$E9", "Active IRQs"),
+				new RegEntry("$E9.0", "MCU IRQ", ((nileCart.IrqStatus >> 0) & 0x01) != 0),
+				new RegEntry("$E9.1", "Onboard Button", ((nileCart.IrqStatus >> 1) & 0x01) != 0),
 			});
-	   }
+		}
 
 		return new RegisterViewerTab("Cart", entries, CpuType.Ws, MemoryType.WsPort);
 	}
