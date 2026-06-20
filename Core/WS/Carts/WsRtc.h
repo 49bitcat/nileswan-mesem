@@ -25,6 +25,7 @@ public:
 	WsRtc(Emulator* emu, WsConsole* console);
 
 	WsRtcState& GetWsState() { return _state; }
+	void Reset();
 
 	uint8_t ReadPort(uint16_t port);
 	void WritePort(uint16_t port, uint8_t value);
