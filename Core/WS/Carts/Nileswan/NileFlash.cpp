@@ -1,7 +1,7 @@
-#include "WS/Carts/Nileswan/NileFlash.h"
-#include "Serializer.h"
-#include "WS/Carts/Nileswan/hardware.h"
 #include "pch.h"
+#include "Utilities/Serializer.h"
+#include "WS/Carts/Nileswan/hardware.h"
+#include "WS/Carts/Nileswan/NileFlash.h"
 
 NileFlash::NileFlash()
 	: txBuf(1024), rxBuf(1024)

@@ -1,8 +1,8 @@
+#include "pch.h"
+#include "Utilities/Serializer.h"
 #include "WS/Carts/Nileswan/NileTF.h"
-#include "Serializer.h"
 #include "WS/Carts/Nileswan/WsCartNileswan.h"
 #include "WS/Carts/Nileswan/hardware.h"
-#include "pch.h"
 
 NileTF::NileTF(WsCartNileswan* _parent)
 	: parent(_parent), txBuf(1024), rxBuf(1024)

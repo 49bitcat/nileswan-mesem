@@ -1,10 +1,10 @@
+#include "pch.h"
+#include "Utilities/Serializer.h"
 #include "WS/Carts/Nileswan/NileMCU.h"
-#include "Serializer.h"
 #include "WS/Carts/Nileswan/WsCartNileswan.h"
 #include "WS/Carts/Nileswan/hardware.h"
 #include "WS/Carts/WsRtc.h"
 #include "WS/WsConsole.h"
-#include "pch.h"
 
 NileMCU::NileMCU(WsCartNileswan *_parent)
 	: parent(_parent), txBuf(1024), rxBuf(1024)
