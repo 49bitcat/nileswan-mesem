@@ -65,7 +65,7 @@ public:
 	WsConsole(Emulator* emu);
 	~WsConsole();
 
-	static vector<string> GetSupportedExtensions() { return { ".ws", ".wsc", ".pc2" }; }
+	static vector<string> GetSupportedExtensions() { return { ".ws", ".wsc", ".pc2", ".ipl0" }; }
 	static vector<string> GetSupportedSignatures() { return {}; }
 
 	LoadRomResult LoadRom(VirtualFile& romFile) override;
