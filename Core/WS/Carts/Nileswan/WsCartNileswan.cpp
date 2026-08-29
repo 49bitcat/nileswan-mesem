@@ -44,10 +44,9 @@ void WsCartNileswan::FpgaReset()
 	_state.SelectedBanks[1] = 0xFF;
 	_state.SelectedBanks[2] = 0xFF;
 	_state.SelectedBanks[3] = 0xFF;
-	_state.ExtSelectedBanks[0] = 0x00;
+	_state.ExtSelectedBanks[0] = 0xFF;
 	_state.ExtSelectedBanks[1] = 0xFF;
 	_state.ExtSelectedBanks[2] = 0xFF;
-	_state.ExtSelectedBanks[3] = 0xFF;
 	_state.RomInRamBank = false;
 	_nstate.SpiCnt = 0;
 	_nstate.PowCnt = NILE_POW_UNLOCK;
@@ -206,15 +205,15 @@ uint8_t WsCartNileswan::ReadPort(uint16_t index)
 			case IO_BANK_2003_RAM:
 				return _state.SelectedBanks[1];
 			case IO_BANK_2003_RAM + 1:
-				return _state.ExtSelectedBanks[1];
+				return _state.ExtSelectedBanks[0];
 			case IO_BANK_2003_ROM0:
 				return _state.SelectedBanks[2];
 			case IO_BANK_2003_ROM0 + 1:
-				return _state.ExtSelectedBanks[2];
+				return _state.ExtSelectedBanks[1];
 			case IO_BANK_2003_ROM1:
 				return _state.SelectedBanks[3];
 			case IO_BANK_2003_ROM1 + 1:
-				return _state.ExtSelectedBanks[3];
+				return _state.ExtSelectedBanks[2];
 		}
 	}
 
@@ -296,7 +295,7 @@ void WsCartNileswan::WritePort(uint16_t index, uint8_t value)
 				RefreshMappingsRange(1, 1);
 				break;
 			case IO_BANK_2003_RAM + 1:
-				_state.ExtSelectedBanks[1] = value;
+				_state.ExtSelectedBanks[0] = value;
 				RefreshMappingsRange(1, 1);
 				break;
 			case IO_BANK_2003_ROM0:
@@ -304,7 +303,7 @@ void WsCartNileswan::WritePort(uint16_t index, uint8_t value)
 				RefreshMappingsRange(2, 2);
 				break;
 			case IO_BANK_2003_ROM0 + 1:
-				_state.ExtSelectedBanks[2] = value;
+				_state.ExtSelectedBanks[1] = value;
 				RefreshMappingsRange(2, 2);
 				break;
 			case IO_BANK_2003_ROM1:
@@ -312,7 +311,7 @@ void WsCartNileswan::WritePort(uint16_t index, uint8_t value)
 				RefreshMappingsRange(3, 3);
 				break;
 			case IO_BANK_2003_ROM1 + 1:
-				_state.ExtSelectedBanks[3] = value;
+				_state.ExtSelectedBanks[2] = value;
 				RefreshMappingsRange(3, 3);
 				break;
 		}

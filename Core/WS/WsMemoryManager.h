@@ -92,7 +92,7 @@ public:
 
 		uint8_t* handler = _writes[addr >> 9];
 		if(handler) {
-			handler[addr & 0xFFF] = value;
+			handler[addr & 0x1FF] = value;
 		}
 	}
 
