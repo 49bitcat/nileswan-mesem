@@ -24,7 +24,7 @@ private:
 public:
 	WsRtc(Emulator* emu, WsConsole* console);
 
-	WsRtcState& GetState() { return _state; }
+	WsRtcState& GetWsState() { return _state; }
 
 	uint8_t ReadPort(uint16_t port);
 	void WritePort(uint16_t port, uint8_t value);

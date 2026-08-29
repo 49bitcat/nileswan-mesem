@@ -448,6 +448,7 @@ enum class WsCartType
 	Bandai2001,
 	Bandai2003,
 	WonderWitch,
+	Nileswan,
 	Unknown
 };
 
