@@ -2,6 +2,7 @@
 #include "pch.h"
 #include "WS/WsTypes.h"
 #include "Utilities/ISerializable.h"
+#include "Shared/Emulator.h"
 #include "Shared/MemoryType.h"
 
 class Emulator;
