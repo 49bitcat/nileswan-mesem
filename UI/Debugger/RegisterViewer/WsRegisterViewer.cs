@@ -371,7 +371,7 @@ public class WsRegisterViewer
 			new RegEntry("$C3", "ROM1 Bank", cart.SelectedBanks[3], Format.X8),
 		});
 
-		if(cart.CartType == WsCartType.Bandai2003 || cart.CartType == WsCartType.WonderWitch) {
+		if(cart.CartType == WsCartType.Bandai2003 || cart.CartType == WsCartType.Nileswan || cart.CartType == WsCartType.WonderWitch) {
 			entries.AddRange(new List<RegEntry>() {
 				new RegEntry("$CE.0", "ROM in RAM Bank", cart.RomInRamBank),
 				new RegEntry("$D0", "Extended RAM Bank", cart.ExtSelectedBanks[0], Format.X16),
