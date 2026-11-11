@@ -141,7 +141,7 @@ T WsMemoryManager::ReadPort(uint16_t port)
 			uint8_t hi = ReadPort<uint8_t>(port + 1);
 			return lo | (hi << 8);
 		} else {
-			Exec();
+			Exec(GetPortWaitStates(port));
 
 			uint16_t value;
 			if(IsUnmappedPort(port)) {
@@ -156,7 +156,7 @@ T WsMemoryManager::ReadPort(uint16_t port)
 			return value;
 		}
 	} else {
-		Exec();
+		Exec(GetPortWaitStates(port));
 
 		uint8_t value = IsUnmappedPort(port) ? GetUnmappedPort() : InternalReadPort(port, false);
 		_emu->ProcessMemoryAccess<CpuType::Ws, MemoryType::WsPort, MemoryOperationType::Read>(port, value);
@@ -173,7 +173,7 @@ void WsMemoryManager::WritePort(uint16_t port, T value)
 			WritePort<uint8_t>(port, value);
 			WritePort<uint8_t>(port + 1, value >> 8);
 		} else {
-			Exec();
+			Exec(GetPortWaitStates(port));
 			_emu->ProcessMemoryAccess<CpuType::Ws, MemoryType::WsPort, MemoryOperationType::Write>(port, value);
 
 			if(!IsUnmappedPort(port)) {
@@ -182,7 +182,7 @@ void WsMemoryManager::WritePort(uint16_t port, T value)
 			}
 		}
 	} else {
-		Exec();
+		Exec(GetPortWaitStates(port));
 		_emu->ProcessMemoryAccess<CpuType::Ws, MemoryType::WsPort, MemoryOperationType::Write>(port, value);
 
 		if(!IsUnmappedPort(port)) {
